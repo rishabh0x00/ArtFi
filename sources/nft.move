@@ -93,4 +93,20 @@ module nft::nft {
         let TestNetNFT { id, name: _, description: _, url: _ } = nft;
         object::delete(id)
     }
+
+    #[test_only]
+    public fun new_testNetNFT(
+        name: vector<u8>,
+        description: vector<u8>,
+        url: vector<u8>,
+        ctx: &mut TxContext
+    ): TestNetNFT {
+        TestNetNFT {
+            id: object::new(ctx),
+            name: string::utf8(name),
+            description: string::utf8(description),
+            url: url::new_unsafe_from_bytes(url)
+        }
+    }
+
 }
