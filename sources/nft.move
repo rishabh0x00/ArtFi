@@ -64,7 +64,11 @@ module nft::nft {
     fun init(ctx: &mut TxContext) {
         transfer::transfer(AdminCap {
             id: object::new(ctx)
-        }, tx_context::sender(ctx))
+        }, tx_context::sender(ctx));
+
+        transfer::transfer(MinterCap {
+            id: object::new(ctx)
+        }, tx_context::sender(ctx));
     }
 
     public fun transferAdminCap(adminCap: AdminCap, newOwner: address) {
@@ -79,29 +83,31 @@ module nft::nft {
 
     /// Create a new nft
     public fun mintNFT(
+        _: &MinterCap,
         name: vector<u8>,
         description: vector<u8>,
         url: vector<u8>,
+        user: address,
         ctx: &mut TxContext
     ) { 
-        let sender = tx_context::sender(ctx);
         mintFunc(
-            name, description, url, sender, ctx
+            name, description, url, user, ctx
         );
     }
     
     /// Create a multiple nft
     public fun mintNftBatch(
+        _: &MinterCap,
         name: &vector<vector<u8>>,
         description: &vector<vector<u8>>,
         url: &vector<vector<u8>>,
+        user: address,
         ctx: &mut TxContext
     ) {
         let lenghtOfVector = vector::length(name);
         assert!(lenghtOfVector == vector::length(description), ELengthNotEqual);
         assert!(lenghtOfVector == vector::length(url), ELengthNotEqual);
 
-        let sender = tx_context::sender(ctx);
         let index = 0;
         while (index < lenghtOfVector) {
 
@@ -109,27 +115,12 @@ module nft::nft {
                 *vector::borrow(name, index),
                 *vector::borrow(description, index),
                 *vector::borrow(url, index),
-                sender, 
+                user, 
                 ctx
             );
 
             index = index + 1;
         };
-    }
-
-    /// create NFT on behalf of user
-    public fun mintNftBehalfOfUser(
-        _: &MinterCap,
-        name: vector<u8>,
-        description: vector<u8>,
-        url: vector<u8>,
-        user: address,
-        ctx: &mut TxContext
-        ) {
-
-        mintFunc(
-            name, description, url, user, ctx
-        );
     }
 
     /// Transfer `nft` to `recipient`
