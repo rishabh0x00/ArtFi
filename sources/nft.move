@@ -22,7 +22,7 @@ module nft::nft {
         id: UID,
         fractionId: u64,
         /// Name for the token
-        artworkName: string::String,
+        name: string::String,
         /// Description of the token
         description: string::String,
         /// URL for the token
@@ -60,7 +60,7 @@ module nft::nft {
 
     /// Get the NFT's `name`
     public fun name(nft: &ArtFiNFT): &string::String {
-        &nft.artworkName
+        &nft.name
     }
 
     /// Get the NFT's `description`
@@ -109,7 +109,7 @@ module nft::nft {
     // === Public-Mutative Functions ===
 
     /// Transfer `nft` to `recipient`
-    public fun transferNFT(
+    public fun transfer_nft(
         nft: ArtFiNFT, recipient: address, _: &mut TxContext
     ) {
         transfer::public_transfer(nft, recipient)
@@ -126,14 +126,14 @@ module nft::nft {
 
     /// Permanently delete `nft`
     public fun burn(nft: ArtFiNFT, _: &mut TxContext) {
-        let ArtFiNFT { id, fractionId: _, artworkName: _, description: _, url: _, royalty: _ } = nft;
+        let ArtFiNFT { id, fractionId: _, name: _, description: _, url: _, royalty: _ } = nft;
         object::delete(id)
     }
 
     // === Admin Functions ===
 
     /// Create a new nft
-    public fun mintNFT(
+    public fun mint_nft(
         _: &MinterCap,
         artworkName: vector<u8>,
         description: vector<u8>,
@@ -145,7 +145,7 @@ module nft::nft {
         stakingContract: u64,
         ctx: &mut TxContext
     ) { 
-        mintFunc(
+        mint_func(
             artworkName, description, url, user, fractionId, Royalty{
                artfi, artist, stakingContract 
             } ,ctx
@@ -153,7 +153,7 @@ module nft::nft {
     }
     
     /// Create a multiple nft
-    public fun mintNftBatch(
+    public fun mint_nft_batch(
         _: &MinterCap,
         name: &vector<vector<u8>>,
         description: &vector<vector<u8>>,
@@ -172,7 +172,7 @@ module nft::nft {
         let index = 0;
         while (index < lenghtOfVector) {
 
-            mintFunc(
+            mint_func(
                 *vector::borrow(name, index),
                 *vector::borrow(description, index),
                 *vector::borrow(url, index),
@@ -192,12 +192,12 @@ module nft::nft {
 
 
     /// transfer AdminCap to newOwner
-    public fun transferAdminCap(adminCap: AdminCap, newOwner: address) {
+    public fun transfer_admin_cap(adminCap: AdminCap, newOwner: address) {
         transfer::transfer(adminCap, newOwner);
     }
 
     /// transfer new instance of MinterCap to minterOwner
-    public fun transferMinterCap(_: &AdminCap, minterOwner: address, ctx: &mut TxContext) {
+    public fun transfer_minter_cap(_: &AdminCap, minterOwner: address, ctx: &mut TxContext) {
         transfer::transfer(MinterCap {
             id: object::new(ctx)
         }, minterOwner);
@@ -205,7 +205,7 @@ module nft::nft {
 
     // === Private Functions ===
     
-    fun mintFunc(
+    fun mint_func(
         name: vector<u8>,
         description: vector<u8>,
         url: vector<u8>,
@@ -217,7 +217,7 @@ module nft::nft {
         let nft = ArtFiNFT {
             id: object::new(ctx),
             fractionId,
-            artworkName: string::utf8(name),
+            name: string::utf8(name),
             description: string::utf8(description),
             url: url::new_unsafe_from_bytes(url),
             royalty
@@ -226,7 +226,7 @@ module nft::nft {
         event::emit(NFTMinted {
             object_id: object::id(&nft),
             creator: tx_context::sender(ctx),
-            name: nft.artworkName,
+            name: nft.name,
         });
 
         transfer::public_transfer(nft, user);
@@ -235,7 +235,7 @@ module nft::nft {
     // === Test Functions ===
 
     #[test_only]
-    public fun new_ArtFiNFT(
+    public fun new_artFi_nft(
         name: vector<u8>,
         description: vector<u8>,
         url: vector<u8>,
@@ -248,7 +248,7 @@ module nft::nft {
         ArtFiNFT {
             id: object::new(ctx),
             fractionId,
-            artworkName: string::utf8(name),
+            name: string::utf8(name),
             description: string::utf8(description),
             url: url::new_unsafe_from_bytes(url),
             royalty: Royalty{
