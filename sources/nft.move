@@ -135,7 +135,7 @@ module nft::nft {
     /// Create a new nft
     public fun mint_nft(
         _: &MinterCap,
-        artworkName: vector<u8>,
+        name: vector<u8>,
         description: vector<u8>,
         url: vector<u8>,
         user: address,
@@ -146,7 +146,7 @@ module nft::nft {
         ctx: &mut TxContext
     ) { 
         mint_func(
-            artworkName, description, url, user, fractionId, Royalty{
+            name, description, url, user, fractionId, Royalty{
                artfi, artist, stakingContract 
             } ,ctx
         );
@@ -267,5 +267,11 @@ module nft::nft {
               artfi, artist, stakingContract  
         }
     }
-     
+    
+    #[test_only]
+    public fun test_init(
+        ctx: &mut TxContext
+    ) {
+        init(ctx);
+    }
 }
