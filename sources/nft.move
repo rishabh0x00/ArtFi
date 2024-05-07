@@ -79,18 +79,18 @@ module nft::nft {
     }
 
     /// Get artfi Royalty of NFT's
-    public fun artfi_royalty(nft: &ArtFiNFT): &u64 {
-        &nft.royalty.artfi
+    public fun artfi_royalty(nft: &ArtFiNFT): u64 {
+        nft.royalty.artfi
     }
 
     /// Get artist Royalty of NFT's
-    public fun artist_royalty(nft: &ArtFiNFT): &u64 {
-        &nft.royalty.artist
+    public fun artist_royalty(nft: &ArtFiNFT): u64 {
+        nft.royalty.artist
     }
 
     /// Get staking contract Royalty of NFT's
-    public fun stakingContract_royalty(nft: &ArtFiNFT): &u64 {
-        &nft.royalty.stakingContract
+    public fun stakingContract_royalty(nft: &ArtFiNFT): u64 {
+        nft.royalty.stakingContract
     }
 
     // ===== Entrypoints =====
@@ -254,6 +254,17 @@ module nft::nft {
             royalty: Royalty{
               artfi, artist, stakingContract  
             }
+        }
+    }
+
+    #[test_only]
+    public fun new_royalty(
+        artfi: u64,
+        artist: u64,
+        stakingContract: u64
+    ): Royalty {
+        Royalty {
+              artfi, artist, stakingContract  
         }
     }
      
