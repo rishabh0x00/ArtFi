@@ -159,7 +159,7 @@ module nft::nft {
         description: &vector<vector<u8>>,
         url: &vector<vector<u8>>,
         user: address,
-        fractionId: u64,
+        fractionId: &vector<u64>,
         artfi: &vector<u64>,
         artist: &vector<u64>,
         stakingContract: &vector<u64>,
@@ -177,7 +177,7 @@ module nft::nft {
                 *vector::borrow(description, index),
                 *vector::borrow(url, index),
                 user, 
-                fractionId,
+                *vector::borrow(fractionId, index),
                 Royalty{
                     artfi: *vector::borrow(artfi, index), 
                     artist: *vector::borrow(artist, index),
