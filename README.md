@@ -53,7 +53,7 @@ Before you can call functions in a Move package (beyond an emulated Sui executio
 
 To publish your package to the Sui network, use the publish CLI command in the root of your package. Use the --gas-budget flag to set a value for the maximum amount of gas the transaction can cost. If the cost of the transaction is more than the budget you set, the transaction fails and your package doesn't publish.
 
-- sui client publish --gas-budget 5000000
+- sui client publish --gas-budget `GAS`
 
 If the publish transaction is successful, your terminal or console responds with the details of the publish transaction separated into sections, including transaction data, transaction effects, transaction block events, object changes, and balance changes.
 
