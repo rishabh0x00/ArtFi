@@ -168,6 +168,10 @@ module nft::nft {
         let lenghtOfVector = vector::length(name);
         assert!(lenghtOfVector == vector::length(description), ELengthNotEqual);
         assert!(lenghtOfVector == vector::length(url), ELengthNotEqual);
+        assert!(lenghtOfVector == vector::length(artfi), ELengthNotEqual);
+        assert!(lenghtOfVector == vector::length(artist), ELengthNotEqual);
+        assert!(lenghtOfVector == vector::length(stakingContract), ELengthNotEqual);
+        assert!(lenghtOfVector == vector::length(fractionId), ELengthNotEqual);
 
         let index = 0;
         while (index < lenghtOfVector) {
