@@ -122,11 +122,26 @@ module nft::nft {
 
     /// Update the `description` of `nft` to `new_description`
     public fun update_description(
+        _: &MinterCap,
         nft: &mut ArtFiNFT,
         new_description: vector<u8>,
         _: &mut TxContext
     ) {
         nft.description = string::utf8(new_description)
+    }
+
+    /// Update the metadata of `nft`
+    public fun update_metadata(
+        _: &MinterCap,
+        nft: &mut ArtFiNFT,
+        new_description: vector<u8>,
+        new_name: vector<u8>,
+        new_url: vector<u8>,
+        _: &mut TxContext
+    ) {
+        nft.description = string::utf8(new_description);
+        nft.name = string::utf8(new_name);
+        nft.url = url::new_unsafe_from_bytes(new_url);
     }
 
     // === Admin Functions ===
@@ -178,7 +193,7 @@ module nft::nft {
     }
 
     /// Permanently delete `nft`
-    public fun burn(_: &AdminCap, nft: ArtFiNFT, _: &mut TxContext) {
+    public fun burn(nft: ArtFiNFT, _: &mut TxContext) {
         let ArtFiNFT { id, fractionId: _, name: _, description: _, url: _, royalty: _ } = nft;
         object::delete(id)
     }

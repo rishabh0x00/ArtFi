@@ -427,7 +427,7 @@ module nft::nft_tests {
         test_scenario::next_tx(&mut scenario, initial_owner);
         {   
             let adminCap = test_scenario::take_from_sender<nft::AdminCap>(&scenario);
-            nft::burn(&adminCap, nftToken, test_scenario::ctx(&mut scenario));
+            nft::burn(nftToken, test_scenario::ctx(&mut scenario));
             test_utils::destroy<nft::AdminCap>(adminCap); 
         };
 
