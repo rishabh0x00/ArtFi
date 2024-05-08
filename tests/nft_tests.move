@@ -8,7 +8,7 @@ module nft::nft_tests {
     use sui::url;
     use std::string;
     use sui::tx_context;
-    use sui::object;
+    use std::vector;
 
     #[test_only] use sui::test_utils;
     #[test_only] use sui::test_scenario;
@@ -291,6 +291,64 @@ module nft::nft_tests {
             assert!(nft::description(&nftToken) == &string::utf8(b"ARTI_NFT"), 1);
             assert!(nft::url(&nftToken) == &url::new_unsafe_from_bytes(url), 1);
             assert!(nft::royalty(&nftToken) == &nft::new_royalty(atfi, artist, stakecontract), 1);
+
+            test_utils::destroy<nft::ArtFiNFT>(nftToken);
+            
+        };
+
+        test_scenario::end(scenario);
+    }
+
+    #[test]
+    fun test_mint_batch_nft() {
+
+        let name = vector[b"ARTI"];
+        let description = vector[b"ARTI_NFT"];
+        let url = vector[b" "];
+        let fractionId = vector[12];
+        let artist = vector[3];
+        let atfi = vector[4];
+        let stakecontract = vector[5];
+
+        let initial_owner = @0xCAFE;
+        let final_owner = @0xFACE;
+
+        let scenario = test_scenario::begin(initial_owner);
+        {   
+            test_scenario::sender(&scenario);
+
+            nft::test_init(test_scenario::ctx(&mut scenario));
+
+        };
+
+        test_scenario::next_tx(&mut scenario, initial_owner);
+        {
+
+            let minterCap = test_scenario::take_from_sender<nft::MinterCap>(&scenario);
+
+            nft::mint_nft_batch(
+                &minterCap, 
+                &name, 
+                &description, 
+                &url, 
+                final_owner, 
+                &fractionId, 
+                &atfi, 
+                &artist, 
+                &stakecontract, 
+                test_scenario::ctx(&mut scenario)
+            );
+
+            test_utils::destroy<nft::MinterCap>(minterCap);
+        };
+
+        test_scenario::next_tx(&mut scenario,final_owner);
+        {
+            let nftToken = test_scenario::take_from_sender<nft::ArtFiNFT>(&scenario);
+
+            assert!(nft::name(&nftToken) == &string::utf8(b"ARTI"), 1);
+            assert!(nft::description(&nftToken) == &string::utf8(b"ARTI_NFT"), 1);
+            assert!(nft::url(&nftToken) == &url::new_unsafe_from_bytes(b" "), 1);
 
             test_utils::destroy<nft::ArtFiNFT>(nftToken);
             
