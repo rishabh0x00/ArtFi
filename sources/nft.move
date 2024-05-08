@@ -13,8 +13,13 @@ module nft::nft {
 
     // ===== Error code ===== 
 
-    const ELengthNotEqual: u64 = 11;
+    const ELengthNotEqual: u64 = 1;
 
+    // === Constants ===
+
+    const ARTFI:u64 = 4;
+    const ARTIST:u64 = 3;
+    const STAKING_CONTRACT:u64 = 3;
 
     // === Structs ===
 
@@ -124,12 +129,6 @@ module nft::nft {
         nft.description = string::utf8(new_description)
     }
 
-    /// Permanently delete `nft`
-    public fun burn(nft: ArtFiNFT, _: &mut TxContext) {
-        let ArtFiNFT { id, fractionId: _, name: _, description: _, url: _, royalty: _ } = nft;
-        object::delete(id)
-    }
-
     // === Admin Functions ===
 
     /// Create a new nft
@@ -140,15 +139,10 @@ module nft::nft {
         url: vector<u8>,
         user: address,
         fractionId: u64,
-        artfi: u64,
-        artist: u64,
-        stakingContract: u64,
         ctx: &mut TxContext
     ) { 
         mint_func(
-            name, description, url, user, fractionId, Royalty{
-               artfi, artist, stakingContract 
-            } ,ctx
+            name, description, url, user, fractionId, ctx
         );
     }
     
@@ -160,17 +154,11 @@ module nft::nft {
         url: &vector<vector<u8>>,
         user: address,
         fractionId: &vector<u64>,
-        artfi: &vector<u64>,
-        artist: &vector<u64>,
-        stakingContract: &vector<u64>,
         ctx: &mut TxContext
     ) {
         let lenghtOfVector = vector::length(name);
         assert!(lenghtOfVector == vector::length(description), ELengthNotEqual);
         assert!(lenghtOfVector == vector::length(url), ELengthNotEqual);
-        assert!(lenghtOfVector == vector::length(artfi), ELengthNotEqual);
-        assert!(lenghtOfVector == vector::length(artist), ELengthNotEqual);
-        assert!(lenghtOfVector == vector::length(stakingContract), ELengthNotEqual);
         assert!(lenghtOfVector == vector::length(fractionId), ELengthNotEqual);
 
         let index = 0;
@@ -182,11 +170,6 @@ module nft::nft {
                 *vector::borrow(url, index),
                 user, 
                 *vector::borrow(fractionId, index),
-                Royalty{
-                    artfi: *vector::borrow(artfi, index), 
-                    artist: *vector::borrow(artist, index),
-                    stakingContract: *vector::borrow(stakingContract, index)
-                },
                 ctx
             );
 
@@ -194,6 +177,11 @@ module nft::nft {
         };
     }
 
+    /// Permanently delete `nft`
+    public fun burn(_: &AdminCap, nft: ArtFiNFT, _: &mut TxContext) {
+        let ArtFiNFT { id, fractionId: _, name: _, description: _, url: _, royalty: _ } = nft;
+        object::delete(id)
+    }
 
     /// transfer AdminCap to newOwner
     public fun transfer_admin_cap(adminCap: AdminCap, newOwner: address) {
@@ -215,7 +203,6 @@ module nft::nft {
         url: vector<u8>,
         user: address,
         fractionId: u64,
-        royalty: Royalty,
         ctx: &mut TxContext
     ) {
         let nft = ArtFiNFT {
@@ -224,7 +211,9 @@ module nft::nft {
             name: string::utf8(name),
             description: string::utf8(description),
             url: url::new_unsafe_from_bytes(url),
-            royalty
+            royalty: Royalty{
+                artfi: ARTFI, artist: ARTIST, stakingContract: STAKING_CONTRACT 
+            }
         };
 
         event::emit(NFTMinted {
@@ -239,14 +228,11 @@ module nft::nft {
     // === Test Functions ===
 
     #[test_only]
-    public fun new_artFi_nft(
+    public fun new_artfi_nft(
         name: vector<u8>,
         description: vector<u8>,
         url: vector<u8>,
         fractionId: u64,
-        artfi: u64,
-        artist: u64,
-        stakingContract: u64,
         ctx: &mut TxContext
     ): ArtFiNFT {
         ArtFiNFT {
@@ -256,19 +242,15 @@ module nft::nft {
             description: string::utf8(description),
             url: url::new_unsafe_from_bytes(url),
             royalty: Royalty{
-              artfi, artist, stakingContract  
+                artfi: ARTFI, artist: ARTIST, stakingContract: STAKING_CONTRACT 
             }
         }
     }
 
     #[test_only]
-    public fun new_royalty(
-        artfi: u64,
-        artist: u64,
-        stakingContract: u64
-    ): Royalty {
+    public fun new_royalty(): Royalty {
         Royalty {
-              artfi, artist, stakingContract  
+            artfi: ARTFI, artist: ARTIST, stakingContract: STAKING_CONTRACT  
         }
     }
     
