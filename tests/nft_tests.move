@@ -592,5 +592,52 @@ module nft::nft_tests {
 
         test_scenario::end(scenario);
     }
+
+    #[test]
+    #[expected_failure(abort_code = nft::nft::ELengthNotEqual)] 
+    fun test_will_error_on_batch_mint_for_unequal_length_vector() {
+
+        let name = vector[b"ARTI"];
+        let description = vector[b"ARTI_NFT"];
+        let url = vector[b" "];
+        let fractionId = vector[12];
+        let artist = vector[3];
+        let atfi = vector[4, 5];
+        let stakecontract = vector[5];
+
+        let initial_owner = @0xCAFE;
+        let final_owner = @0xFACE;
+
+        let scenario = test_scenario::begin(initial_owner);
+        {   
+            test_scenario::sender(&scenario);
+
+            nft::test_init(test_scenario::ctx(&mut scenario));
+
+        };
+
+        test_scenario::next_tx(&mut scenario, initial_owner);
+        {
+
+            let minterCap = test_scenario::take_from_sender<nft::MinterCap>(&scenario);
+
+            nft::mint_nft_batch(
+                &minterCap, 
+                &name, 
+                &description, 
+                &url, 
+                final_owner, 
+                &fractionId, 
+                &atfi, 
+                &artist, 
+                &stakecontract, 
+                test_scenario::ctx(&mut scenario)
+            );
+
+            test_utils::destroy<nft::MinterCap>(minterCap);
+        };
+
+        test_scenario::end(scenario);
+    }
         
 }
