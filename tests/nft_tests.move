@@ -349,7 +349,7 @@ module nft::nft_tests {
             assert!(nft::name(&nftToken) == &string::utf8(b"ARTI"), 1);
             assert!(nft::description(&nftToken) == &string::utf8(b"ARTI_NFT"), 1);
             assert!(nft::url(&nftToken) == &url::new_unsafe_from_bytes(b" "), 1);
-
+            assert!(nft::royalty(&nftToken) == &nft::new_royalty(*vector::borrow(&atfi, 0), *vector::borrow(&artist, 0), *vector::borrow(&stakecontract, 0)), 1);
             test_utils::destroy<nft::ArtFiNFT>(nftToken);
             
         };
