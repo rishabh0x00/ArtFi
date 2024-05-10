@@ -1,15 +1,16 @@
 #[allow(lint(self_transfer))]
-module nft::nft {
+module collection::nft {
 
     // === Imports ===
 
-    use sui::url::{Self, Url};
-    use std::string;
-    use sui::object::{Self, ID, UID};
     use sui::event;
+    use sui::object::{Self, ID, UID};
+    use std::string;
     use sui::transfer;
     use sui::tx_context::{Self, TxContext};
+    use sui::url::{Self, Url};
     use std::vector;
+
 
     // ===== Error code ===== 
 
@@ -39,14 +40,14 @@ module nft::nft {
     struct Royalty has store, drop, copy {
         artfi: u64,
         artist: u64,
-        stakingContract: u64
+        staking_contract: u64
     }
 
-    struct AdminCap has key {
+    struct Admin has key {
         id: UID
     }
 
-    struct MinterCap has key {
+    struct Minter has key {
         id: UID
     }
 
@@ -94,19 +95,19 @@ module nft::nft {
     }
 
     /// Get staking contract Royalty of NFT's
-    public fun stakingContract_royalty(nft: &ArtFiNFT): u64 {
-        nft.royalty.stakingContract
+    public fun staking_contract_royalty(nft: &ArtFiNFT): u64 {
+        nft.royalty.staking_contract
     }
 
     // ===== Entrypoints =====
 
     /// Module initializer is called only once on module publish.
     fun init(ctx: &mut TxContext) {
-        transfer::transfer(AdminCap {
+        transfer::transfer(Admin {
             id: object::new(ctx)
         }, tx_context::sender(ctx));
 
-        transfer::transfer(MinterCap {
+        transfer::transfer(Minter {
             id: object::new(ctx)
         }, tx_context::sender(ctx));
     }
@@ -120,19 +121,9 @@ module nft::nft {
         transfer::public_transfer(nft, recipient)
     }
 
-    /// Update the `description` of `nft` to `new_description`
-    public fun update_description(
-        _: &MinterCap,
-        nft: &mut ArtFiNFT,
-        new_description: vector<u8>,
-        _: &mut TxContext
-    ) {
-        nft.description = string::utf8(new_description)
-    }
-
     /// Update the metadata of `nft`
     public fun update_metadata(
-        _: &MinterCap,
+        _: &Minter,
         nft: &mut ArtFiNFT,
         new_description: vector<u8>,
         new_name: vector<u8>,
@@ -148,7 +139,7 @@ module nft::nft {
 
     /// Create a new nft
     public fun mint_nft(
-        _: &MinterCap,
+        _: &Minter,
         name: vector<u8>,
         description: vector<u8>,
         url: vector<u8>,
@@ -163,7 +154,7 @@ module nft::nft {
     
     /// Create a multiple nft
     public fun mint_nft_batch(
-        _: &MinterCap,
+        _: &Minter,
         name: &vector<vector<u8>>,
         description: &vector<vector<u8>>,
         url: &vector<vector<u8>>,
@@ -199,13 +190,13 @@ module nft::nft {
     }
 
     /// transfer AdminCap to newOwner
-    public fun transfer_admin_cap(adminCap: AdminCap, newOwner: address) {
+    public fun transfer_admin_cap(adminCap: Admin, newOwner: address) {
         transfer::transfer(adminCap, newOwner);
     }
 
     /// transfer new instance of MinterCap to minterOwner
-    public fun transfer_minter_cap(_: &AdminCap, minterOwner: address, ctx: &mut TxContext) {
-        transfer::transfer(MinterCap {
+    public fun transfer_minter_cap(_: &Admin, minterOwner: address, ctx: &mut TxContext) {
+        transfer::transfer(Minter {
             id: object::new(ctx)
         }, minterOwner);
     }
@@ -227,7 +218,7 @@ module nft::nft {
             description: string::utf8(description),
             url: url::new_unsafe_from_bytes(url),
             royalty: Royalty{
-                artfi: ARTFI, artist: ARTIST, stakingContract: STAKING_CONTRACT 
+                artfi: ARTFI, artist: ARTIST, staking_contract: STAKING_CONTRACT 
             }
         };
 
@@ -257,7 +248,7 @@ module nft::nft {
             description: string::utf8(description),
             url: url::new_unsafe_from_bytes(url),
             royalty: Royalty{
-                artfi: ARTFI, artist: ARTIST, stakingContract: STAKING_CONTRACT 
+                artfi: ARTFI, artist: ARTIST, staking_contract: STAKING_CONTRACT 
             }
         }
     }
@@ -265,7 +256,7 @@ module nft::nft {
     #[test_only]
     public fun new_royalty(): Royalty {
         Royalty {
-            artfi: ARTFI, artist: ARTIST, stakingContract: STAKING_CONTRACT  
+            artfi: ARTFI, artist: ARTIST, staking_contract: STAKING_CONTRACT  
         }
     }
     

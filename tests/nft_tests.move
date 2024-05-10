@@ -1,10 +1,10 @@
 #[test_only]
-module nft::nft_tests {
+module collection::nft_tests {
     // Test attribute is placed before the `fun` keyword. Can be both above or
     // right before the `fun` keyword: `#[test] fun my_test() { ... }`
     // The name of the test would be `book::testing::simple_test`.
     #[test_only]
-    use nft::nft;
+    use collection::nft;
     use sui::url;
     use std::string;
     use sui::tx_context;
@@ -114,24 +114,7 @@ module nft::nft_tests {
         let fractionId = 12;
         let testNetNFt = nft::new_artfi_nft(name, description, url, fractionId, &mut tx_context::dummy());
 
-        assert!(nft::stakingContract_royalty(&testNetNFt) ==  3, 1);
-
-        test_utils::destroy<nft::ArtFiNFT>(testNetNFt);
-        
-    }
-
-    #[test]
-    fun update_description_test() {
-        let name = b"ARTI";
-        let description = b"ARTI_NFT";
-        let url = b" ";
-        let fractionId = 12;
-
-        let testNetNFt = nft::new_artfi_nft(name, description, url, fractionId, &mut tx_context::dummy());
-        let new_description = b"NEW_ARTI_NFT";
-        nft::update_description(&mut testNetNFt, new_description, &mut tx_context::dummy());
-
-        assert!(nft::description(&testNetNFt) ==  &string::utf8(b"NEW_ARTI_NFT"), 1);
+        assert!(nft::staking_contract_royalty(&testNetNFt) ==  3, 1);
 
         test_utils::destroy<nft::ArtFiNFT>(testNetNFt);
         
@@ -153,11 +136,11 @@ module nft::nft_tests {
 
         test_scenario::next_tx(&mut scenario,initial_owner);
         {
-            let adminCap = test_scenario::take_from_sender<nft::AdminCap>(&scenario);
+            let adminCap = test_scenario::take_from_sender<nft::Admin>(&scenario);
 
             nft::transfer_minter_cap(&adminCap, final_owner, test_scenario::ctx(&mut scenario));
 
-             test_utils::destroy<nft::AdminCap>(adminCap);
+             test_utils::destroy<nft::Admin>(adminCap);
 
         };
 
@@ -180,11 +163,11 @@ module nft::nft_tests {
 
         test_scenario::next_tx(&mut scenario,initial_owner);
         {
-            let adminCap = test_scenario::take_from_sender<nft::AdminCap>(&scenario);
+            let adminCap = test_scenario::take_from_sender<nft::Admin>(&scenario);
 
             nft::transfer_minter_cap(&adminCap, final_owner, test_scenario::ctx(&mut scenario));
 
-             test_utils::destroy<nft::AdminCap>(adminCap);
+             test_utils::destroy<nft::Admin>(adminCap);
 
         };
 
@@ -207,7 +190,7 @@ module nft::nft_tests {
 
         test_scenario::next_tx(&mut scenario,initial_owner);
         {
-            let adminCap = test_scenario::take_from_sender<nft::AdminCap>(&scenario);
+            let adminCap = test_scenario::take_from_sender<nft::Admin>(&scenario);
 
             nft::transfer_admin_cap(adminCap, final_owner);
 
@@ -238,7 +221,7 @@ module nft::nft_tests {
         test_scenario::next_tx(&mut scenario, initial_owner);
         {
 
-            let minterCap = test_scenario::take_from_sender<nft::MinterCap>(&scenario);
+            let minterCap = test_scenario::take_from_sender<nft::Minter>(&scenario);
             nft::mint_nft(
                 &minterCap, 
                 name, 
@@ -249,7 +232,7 @@ module nft::nft_tests {
                 test_scenario::ctx(&mut scenario)
             );
 
-            test_utils::destroy<nft::MinterCap>(minterCap);
+            test_utils::destroy<nft::Minter>(minterCap);
         };
 
         test_scenario::next_tx(&mut scenario,final_owner);
@@ -290,7 +273,7 @@ module nft::nft_tests {
         test_scenario::next_tx(&mut scenario, initial_owner);
         {
 
-            let minterCap = test_scenario::take_from_sender<nft::MinterCap>(&scenario);
+            let minterCap = test_scenario::take_from_sender<nft::Minter>(&scenario);
 
             nft::mint_nft_batch(
                 &minterCap, 
@@ -302,7 +285,7 @@ module nft::nft_tests {
                 test_scenario::ctx(&mut scenario)
             );
 
-            test_utils::destroy<nft::MinterCap>(minterCap);
+            test_utils::destroy<nft::Minter>(minterCap);
         };
 
         test_scenario::next_tx(&mut scenario,final_owner);
@@ -343,7 +326,7 @@ module nft::nft_tests {
         test_scenario::next_tx(&mut scenario, initial_owner);
         {
 
-            let minterCap = test_scenario::take_from_sender<nft::MinterCap>(&scenario);
+            let minterCap = test_scenario::take_from_sender<nft::Minter>(&scenario);
             nft::mint_nft(
                 &minterCap, 
                 name, 
@@ -354,7 +337,7 @@ module nft::nft_tests {
                 test_scenario::ctx(&mut scenario)
             );
 
-            test_utils::destroy<nft::MinterCap>(minterCap);
+            test_utils::destroy<nft::Minter>(minterCap);
         };
 
         test_scenario::next_tx(&mut scenario,final_owner);
@@ -404,7 +387,7 @@ module nft::nft_tests {
         test_scenario::next_tx(&mut scenario, initial_owner);
         {
 
-            let minterCap = test_scenario::take_from_sender<nft::MinterCap>(&scenario);
+            let minterCap = test_scenario::take_from_sender<nft::Minter>(&scenario);
             nft::mint_nft(
                 &minterCap, 
                 name, 
@@ -415,7 +398,7 @@ module nft::nft_tests {
                 test_scenario::ctx(&mut scenario)
             );
 
-            test_utils::destroy<nft::MinterCap>(minterCap);
+            test_utils::destroy<nft::Minter>(minterCap);
         };
 
         test_scenario::next_tx(&mut scenario,final_owner);
@@ -426,9 +409,9 @@ module nft::nft_tests {
 
         test_scenario::next_tx(&mut scenario, initial_owner);
         {   
-            let adminCap = test_scenario::take_from_sender<nft::AdminCap>(&scenario);
+            let adminCap = test_scenario::take_from_sender<nft::Admin>(&scenario);
             nft::burn(nftToken, test_scenario::ctx(&mut scenario));
-            test_utils::destroy<nft::AdminCap>(adminCap); 
+            test_utils::destroy<nft::Admin>(adminCap); 
         };
 
         test_scenario::next_tx(&mut scenario, final_owner);
@@ -458,11 +441,11 @@ module nft::nft_tests {
 
         test_scenario::next_tx(&mut scenario, final_owner);
         {
-            let adminCap = test_scenario::take_from_sender<nft::AdminCap>(&scenario);
+            let adminCap = test_scenario::take_from_sender<nft::Admin>(&scenario);
 
             nft::transfer_minter_cap(&adminCap, final_owner, test_scenario::ctx(&mut scenario));
 
-            test_utils::destroy<nft::AdminCap>(adminCap);
+            test_utils::destroy<nft::Admin>(adminCap);
         };
         
         test_scenario::end(scenario);
@@ -485,7 +468,7 @@ module nft::nft_tests {
 
         test_scenario::next_tx(&mut scenario, final_owner);
         {
-            let adminCap = test_scenario::take_from_sender<nft::AdminCap>(&scenario);
+            let adminCap = test_scenario::take_from_sender<nft::Admin>(&scenario);
 
             nft::transfer_admin_cap(adminCap, final_owner);
 
@@ -518,7 +501,7 @@ module nft::nft_tests {
         test_scenario::next_tx(&mut scenario, initial_owner);
         {
 
-            let minterCap = test_scenario::take_from_sender<nft::MinterCap>(&scenario);
+            let minterCap = test_scenario::take_from_sender<nft::Minter>(&scenario);
             nft::mint_nft(
                 &minterCap, 
                 name, 
@@ -529,7 +512,7 @@ module nft::nft_tests {
                 test_scenario::ctx(&mut scenario)
             );
 
-            test_utils::destroy<nft::MinterCap>(minterCap);
+            test_utils::destroy<nft::Minter>(minterCap);
         };
 
         test_scenario::next_tx(&mut scenario, initial_owner);
@@ -544,7 +527,7 @@ module nft::nft_tests {
     }
 
     #[test]
-    #[expected_failure(abort_code = nft::nft::ELengthNotEqual)] 
+    #[expected_failure(abort_code = collection::nft::ELengthNotEqual)] 
     fun test_will_error_on_batch_mint_for_unequal_length_vector() {
 
         let name = vector[b"ARTI"];
@@ -566,7 +549,7 @@ module nft::nft_tests {
         test_scenario::next_tx(&mut scenario, initial_owner);
         {
 
-            let minterCap = test_scenario::take_from_sender<nft::MinterCap>(&scenario);
+            let minterCap = test_scenario::take_from_sender<nft::Minter>(&scenario);
 
             nft::mint_nft_batch(
                 &minterCap, 
@@ -578,7 +561,7 @@ module nft::nft_tests {
                 test_scenario::ctx(&mut scenario)
             );
 
-            test_utils::destroy<nft::MinterCap>(minterCap);
+            test_utils::destroy<nft::Minter>(minterCap);
         };
 
         test_scenario::end(scenario);
