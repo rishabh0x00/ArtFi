@@ -115,7 +115,7 @@ module collection::nft {
     // === Public-Mutative Functions ===
 
     /// Transfer `nft` to `recipient`
-    public fun transfer_nft(
+    public entry fun transfer_nft(
         nft: ArtFiNFT, recipient: address, _: &mut TxContext
     ) {
         transfer::public_transfer(nft, recipient)
@@ -138,7 +138,7 @@ module collection::nft {
     // === Admin Functions ===
 
     /// Create a new nft
-    public fun mint_nft(
+    public entry fun mint_nft(
         _: &Minter,
         name: vector<u8>,
         description: vector<u8>,
@@ -184,18 +184,18 @@ module collection::nft {
     }
 
     /// Permanently delete `nft`
-    public fun burn(nft: ArtFiNFT, _: &mut TxContext) {
+    public entry fun burn(nft: ArtFiNFT, _: &mut TxContext) {
         let ArtFiNFT { id, fractionId: _, name: _, description: _, url: _, royalty: _ } = nft;
         object::delete(id)
     }
 
     /// transfer AdminCap to newOwner
-    public fun transfer_admin_cap(adminCap: Admin, newOwner: address) {
+    public entry fun transfer_admin_cap(adminCap: Admin, newOwner: address) {
         transfer::transfer(adminCap, newOwner);
     }
 
     /// transfer new instance of MinterCap to minterOwner
-    public fun transfer_minter_cap(_: &Admin, minterOwner: address, ctx: &mut TxContext) {
+    public entry fun transfer_minter_cap(_: &Admin, minterOwner: address, ctx: &mut TxContext) {
         transfer::transfer(Minter {
             id: object::new(ctx)
         }, minterOwner);
