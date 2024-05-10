@@ -1,4 +1,4 @@
-# ArtFi
+# ArtFi NFT Sui
 
 
 ## Cli Commands 
