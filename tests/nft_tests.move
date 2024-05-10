@@ -8,7 +8,6 @@ module nft::nft_tests {
     use sui::url;
     use std::string;
     use sui::tx_context;
-    use std::vector;
 
     #[test_only] use sui::test_utils;
     #[test_only] use sui::test_scenario;
@@ -20,10 +19,7 @@ module nft::nft_tests {
         let description = b"ARTI_NFT";
         let url = b"ARTI_NFT";
         let fractionId = 12;
-        let artist = 3;
-        let atfi = 4;
-        let stakecontract = 5;
-        let testNetNFt = nft::new_artFi_nft(name, description, url, fractionId, atfi, artist, stakecontract, &mut tx_context::dummy());
+        let testNetNFt = nft::new_artfi_nft(name, description, url, fractionId, &mut tx_context::dummy());
 
         assert!(nft::name(&testNetNFt) == &string::utf8(b"ARTI"), 1);
 
@@ -39,10 +35,7 @@ module nft::nft_tests {
         let description = b"ARTI_NFT";
         let url = b"ARTI_NFT";
         let fractionId = 12;
-        let artist = 3;
-        let atfi = 4;
-        let stakecontract = 5;
-        let testNetNFt = nft::new_artFi_nft(name, description, url, fractionId, atfi, artist, stakecontract, &mut tx_context::dummy());
+        let testNetNFt = nft::new_artfi_nft(name, description, url, fractionId, &mut tx_context::dummy());
 
         assert!(nft::description(&testNetNFt) == &string::utf8(b"ARTI_NFT"), 1);
 
@@ -58,10 +51,7 @@ module nft::nft_tests {
         let description = b"ARTI_NFT";
         let url = b" ";
         let fractionId = 12;
-        let artist = 3;
-        let atfi = 4;
-        let stakecontract = 5;
-        let testNetNFt = nft::new_artFi_nft(name, description, url, fractionId, atfi, artist, stakecontract, &mut tx_context::dummy());
+        let testNetNFt = nft::new_artfi_nft(name, description, url, fractionId, &mut tx_context::dummy());
 
         assert!(nft::url(&testNetNFt) ==  &url::new_unsafe_from_bytes(url), 1);
 
@@ -76,12 +66,9 @@ module nft::nft_tests {
         let description = b"ARTI_NFT";
         let url = b" ";
         let fractionId = 12;
-        let artist = 3;
-        let atfi = 4;
-        let stakecontract = 5;
-        let testNetNFt = nft::new_artFi_nft(name, description, url, fractionId, atfi, artist, stakecontract, &mut tx_context::dummy());
+        let testNetNFt = nft::new_artfi_nft(name, description, url, fractionId, &mut tx_context::dummy());
 
-        let royalty_instance = nft::new_royalty(atfi, artist, stakecontract); 
+        let royalty_instance = nft::new_royalty(); 
         assert!(nft::royalty(&testNetNFt) == &royalty_instance, 1);
 
         test_utils::destroy<nft::ArtFiNFT>(testNetNFt);
@@ -95,12 +82,9 @@ module nft::nft_tests {
         let description = b"ARTI_NFT";
         let url = b" ";
         let fractionId = 12;
-        let artist = 3;
-        let atfi = 4;
-        let stakecontract = 5;
-        let testNetNFt = nft::new_artFi_nft(name, description, url, fractionId, atfi, artist, stakecontract, &mut tx_context::dummy());
+        let testNetNFt = nft::new_artfi_nft(name, description, url, fractionId, &mut tx_context::dummy());
 
-        assert!(nft::artfi_royalty(&testNetNFt) ==  atfi, 1);
+        assert!(nft::artfi_royalty(&testNetNFt) ==  4, 1);
 
         test_utils::destroy<nft::ArtFiNFT>(testNetNFt);
         
@@ -113,12 +97,9 @@ module nft::nft_tests {
         let description = b"ARTI_NFT";
         let url = b" ";
         let fractionId = 12;
-        let artist = 3;
-        let atfi = 4;
-        let stakecontract = 5;
-        let testNetNFt = nft::new_artFi_nft(name, description, url, fractionId, atfi, artist, stakecontract, &mut tx_context::dummy());
+        let testNetNFt = nft::new_artfi_nft(name, description, url, fractionId, &mut tx_context::dummy());
 
-        assert!(nft::artist_royalty(&testNetNFt) ==  artist, 1);
+        assert!(nft::artist_royalty(&testNetNFt) ==  3, 1);
 
         test_utils::destroy<nft::ArtFiNFT>(testNetNFt);
         
@@ -131,12 +112,9 @@ module nft::nft_tests {
         let description = b"ARTI_NFT";
         let url = b" ";
         let fractionId = 12;
-        let artist = 3;
-        let atfi = 4;
-        let stakecontract = 5;
-        let testNetNFt = nft::new_artFi_nft(name, description, url, fractionId, atfi, artist, stakecontract, &mut tx_context::dummy());
+        let testNetNFt = nft::new_artfi_nft(name, description, url, fractionId, &mut tx_context::dummy());
 
-        assert!(nft::stakingContract_royalty(&testNetNFt) ==  stakecontract, 1);
+        assert!(nft::stakingContract_royalty(&testNetNFt) ==  3, 1);
 
         test_utils::destroy<nft::ArtFiNFT>(testNetNFt);
         
@@ -148,11 +126,8 @@ module nft::nft_tests {
         let description = b"ARTI_NFT";
         let url = b" ";
         let fractionId = 12;
-        let artist = 3;
-        let atfi = 4;
-        let stakecontract = 5;
 
-        let testNetNFt = nft::new_artFi_nft(name, description, url, fractionId, atfi, artist, stakecontract, &mut tx_context::dummy());
+        let testNetNFt = nft::new_artfi_nft(name, description, url, fractionId, &mut tx_context::dummy());
         let new_description = b"NEW_ARTI_NFT";
         nft::update_description(&mut testNetNFt, new_description, &mut tx_context::dummy());
 
@@ -248,9 +223,6 @@ module nft::nft_tests {
         let description = b"ARTI_NFT";
         let url = b" ";
         let fractionId = 12;
-        let artist = 3;
-        let atfi = 4;
-        let stakecontract = 5;
 
         let initial_owner = @0xCAFE;
         let final_owner = @0xFACE;
@@ -274,9 +246,6 @@ module nft::nft_tests {
                 url, 
                 final_owner, 
                 fractionId, 
-                atfi, 
-                artist, 
-                stakecontract, 
                 test_scenario::ctx(&mut scenario)
             );
 
@@ -290,7 +259,7 @@ module nft::nft_tests {
             assert!(nft::name(&nftToken) == &string::utf8(b"ARTI"), 1);
             assert!(nft::description(&nftToken) == &string::utf8(b"ARTI_NFT"), 1);
             assert!(nft::url(&nftToken) == &url::new_unsafe_from_bytes(url), 1);
-            assert!(nft::royalty(&nftToken) == &nft::new_royalty(atfi, artist, stakecontract), 1);
+            assert!(nft::royalty(&nftToken) == &nft::new_royalty(), 1);
 
             test_utils::destroy<nft::ArtFiNFT>(nftToken);
             
@@ -306,9 +275,6 @@ module nft::nft_tests {
         let description = vector[b"ARTI_NFT"];
         let url = vector[b" "];
         let fractionId = vector[12];
-        let artist = vector[3];
-        let atfi = vector[4];
-        let stakecontract = vector[5];
 
         let initial_owner = @0xCAFE;
         let final_owner = @0xFACE;
@@ -333,9 +299,6 @@ module nft::nft_tests {
                 &url, 
                 final_owner, 
                 &fractionId, 
-                &atfi, 
-                &artist, 
-                &stakecontract, 
                 test_scenario::ctx(&mut scenario)
             );
 
@@ -349,7 +312,7 @@ module nft::nft_tests {
             assert!(nft::name(&nftToken) == &string::utf8(b"ARTI"), 1);
             assert!(nft::description(&nftToken) == &string::utf8(b"ARTI_NFT"), 1);
             assert!(nft::url(&nftToken) == &url::new_unsafe_from_bytes(b" "), 1);
-            assert!(nft::royalty(&nftToken) == &nft::new_royalty(*vector::borrow(&atfi, 0), *vector::borrow(&artist, 0), *vector::borrow(&stakecontract, 0)), 1);
+            assert!(nft::royalty(&nftToken) == &nft::new_royalty(), 1);
             test_utils::destroy<nft::ArtFiNFT>(nftToken);
             
         };
@@ -364,9 +327,6 @@ module nft::nft_tests {
         let description = b"ARTI_NFT";
         let url = b" ";
         let fractionId = 12;
-        let artist = 3;
-        let atfi = 4;
-        let stakecontract = 5;
 
         let initial_owner = @0xCAFE;
         let final_owner = @0xFACE;
@@ -391,9 +351,6 @@ module nft::nft_tests {
                 url, 
                 final_owner, 
                 fractionId, 
-                atfi, 
-                artist, 
-                stakecontract, 
                 test_scenario::ctx(&mut scenario)
             );
 
@@ -415,7 +372,7 @@ module nft::nft_tests {
             assert!(nft::name(&nftToken) == &string::utf8(b"ARTI"), 1);
             assert!(nft::description(&nftToken) == &string::utf8(b"ARTI_NFT"), 1);
             assert!(nft::url(&nftToken) == &url::new_unsafe_from_bytes(url), 1);
-            assert!(nft::royalty(&nftToken) == &nft::new_royalty(atfi, artist, stakecontract), 1);
+            assert!(nft::royalty(&nftToken) == &nft::new_royalty(), 1);
 
             test_utils::destroy<nft::ArtFiNFT>(nftToken);
             
@@ -432,9 +389,6 @@ module nft::nft_tests {
         let description = b"ARTI_NFT";
         let url = b" ";
         let fractionId = 12;
-        let artist = 3;
-        let atfi = 4;
-        let stakecontract = 5;
 
         let initial_owner = @0xCAFE;
         let final_owner = @0xFACE;
@@ -458,9 +412,6 @@ module nft::nft_tests {
                 url, 
                 final_owner, 
                 fractionId, 
-                atfi, 
-                artist, 
-                stakecontract, 
                 test_scenario::ctx(&mut scenario)
             );
 
@@ -468,11 +419,16 @@ module nft::nft_tests {
         };
 
         test_scenario::next_tx(&mut scenario,final_owner);
+        let nftToken;
         {
-            let nftToken = test_scenario::take_from_sender<nft::ArtFiNFT>(&scenario);
+            nftToken = test_scenario::take_from_sender<nft::ArtFiNFT>(&scenario);
+        };
 
+        test_scenario::next_tx(&mut scenario, initial_owner);
+        {   
+            let adminCap = test_scenario::take_from_sender<nft::AdminCap>(&scenario);
             nft::burn(nftToken, test_scenario::ctx(&mut scenario));
-            
+            test_utils::destroy<nft::AdminCap>(adminCap); 
         };
 
         test_scenario::next_tx(&mut scenario, final_owner);
@@ -546,9 +502,6 @@ module nft::nft_tests {
         let description = b"ARTI_NFT";
         let url = b" ";
         let fractionId = 12;
-        let artist = 3;
-        let atfi = 4;
-        let stakecontract = 5;
 
         let initial_owner = @0xCAFE;
         let final_owner = @0xFACE;
@@ -572,10 +525,7 @@ module nft::nft_tests {
                 description, 
                 url, 
                 final_owner, 
-                fractionId, 
-                atfi, 
-                artist, 
-                stakecontract, 
+                fractionId,
                 test_scenario::ctx(&mut scenario)
             );
 
@@ -599,11 +549,8 @@ module nft::nft_tests {
 
         let name = vector[b"ARTI"];
         let description = vector[b"ARTI_NFT"];
-        let url = vector[b" "];
+        let url = vector[b" ", b"ARTI_NFT"];
         let fractionId = vector[12];
-        let artist = vector[3];
-        let atfi = vector[4, 5];
-        let stakecontract = vector[5];
 
         let initial_owner = @0xCAFE;
         let final_owner = @0xFACE;
@@ -627,10 +574,7 @@ module nft::nft_tests {
                 &description, 
                 &url, 
                 final_owner, 
-                &fractionId, 
-                &atfi, 
-                &artist, 
-                &stakecontract, 
+                &fractionId,
                 test_scenario::ctx(&mut scenario)
             );
 
