@@ -4,14 +4,13 @@ module collection::nft {
     // === Imports ===
 
     use sui::event;
-    // use sui::object::{Self, ID, UID};
-    use sui::object::{Self, UID};
+    use sui::object::{Self, ID, UID};
+    // use sui::object::{Self, UID};
     use std::string::String;
     use sui::transfer;
     use sui::tx_context::{Self, TxContext};
     use sui::url::{Self, Url};
     use std::vector;
-
 
     // ===== Error code ===== 
 
@@ -44,11 +43,11 @@ module collection::nft {
         staking_contract: u64
     }
 
-    struct Admin has key {
+    struct AdminCap has key {
         id: UID
     }
 
-    struct Minter has key {
+    struct MinterCap has key {
         id: UID
     }
 
@@ -56,7 +55,7 @@ module collection::nft {
 
     struct NFTMinted has copy, drop {
         // The Object ID of the NFT
-        // token_id: ID,
+        token_id: ID,
         // The creator of the NFT
         creator: address,
         // The name of the NFT
@@ -64,6 +63,8 @@ module collection::nft {
     }
 
     struct NFTBatchMinted has copy, drop {
+        // The Object IDs of Batch Minted NFTs
+        token_ids: vector<ID>,
         // The creator of the NFT
         creator: address,
         // The name of the NFT
@@ -124,11 +125,11 @@ module collection::nft {
 
     /// Module initializer is called only once on module publish.
     fun init(ctx: &mut TxContext) {
-        transfer::transfer(Admin {
+        transfer::transfer(AdminCap {
             id: object::new(ctx)
         }, tx_context::sender(ctx));
 
-        transfer::transfer(Minter {
+        transfer::transfer(MinterCap {
             id: object::new(ctx)
         }, tx_context::sender(ctx));
     }
@@ -144,7 +145,7 @@ module collection::nft {
 
     /// Update the metadata of `nft`
     public fun update_metadata(
-        _: &Minter,
+        _: &MinterCap,
         nft: &mut ArtFiNFT,
         new_description: String,
         new_name: String,
@@ -163,11 +164,11 @@ module collection::nft {
         })
     }
 
-    // === Admin Functions ===
+    // === AdminCap Functions ===
 
     /// Create a new nft
     public entry fun mint_nft(
-        _: &Minter,
+        _: &MinterCap,
         name: String,
         description: String,
         url: vector<u8>,
@@ -175,8 +176,7 @@ module collection::nft {
         fraction_id: u64,
         ctx: &mut TxContext
     ) { 
-        // let id: ID = 
-        mint_func(
+        let id: ID = mint_func(
             name,
             description,
             url,
@@ -189,6 +189,7 @@ module collection::nft {
         );
 
         event::emit(NFTMinted {
+            token_id: id,
             creator: tx_context::sender(ctx),
             name: name,
         });
@@ -196,7 +197,7 @@ module collection::nft {
     
     /// Create a multiple nft
     public fun mint_nft_batch(
-        _: &Minter,
+        _: &MinterCap,
         name: String,
         description: String,
         uris: &vector<vector<u8>>,
@@ -207,9 +208,10 @@ module collection::nft {
         let lengthOfVector = vector::length(uris);
         assert!(lengthOfVector == vector::length(fraction_ids), ELengthNotEqual);
 
+        let ids: vector<ID> = vector[];
         let index = 0;
         while (index < lengthOfVector) {
-            mint_func(
+            let id = mint_func(
                 name,
                 description,
                 *vector::borrow(uris, index),
@@ -222,9 +224,11 @@ module collection::nft {
             );
 
             index = index + 1;
+            vector::push_back(&mut ids, id);
         };
 
         event::emit(NFTBatchMinted {
+            token_ids: ids,
             creator: tx_context::sender(ctx),
             name: name,
             no_of_tokens: lengthOfVector
@@ -238,13 +242,13 @@ module collection::nft {
     }
 
     /// transfer AdminCap to newOwner
-    public entry fun transfer_admin_cap(adminCap: Admin, newOwner: address) {
+    public entry fun transfer_admin_cap(adminCap: AdminCap, newOwner: address) {
         transfer::transfer(adminCap, newOwner);
     }
 
     /// transfer new instance of MinterCap to minterOwner
-    public entry fun transfer_minter_cap(_: &Admin, minterOwner: address, ctx: &mut TxContext) {
-        transfer::transfer(Minter {
+    public entry fun transfer_minter_cap(_: &AdminCap, minterOwner: address, ctx: &mut TxContext) {
+        transfer::transfer(MinterCap {
             id: object::new(ctx)
         }, minterOwner);
     }
@@ -259,7 +263,7 @@ module collection::nft {
         fraction_id: u64,
         royalty: Royalty,
         ctx: &mut TxContext
-    ) {
+     ) : ID {
         let nft = ArtFiNFT {
             id: object::new(ctx),
             fraction_id,
@@ -269,9 +273,9 @@ module collection::nft {
             royalty: royalty
         };
 
+        let _id = object::id(&nft);
         transfer::public_transfer(nft, user);
-
-        // object::id(&nft);
+        _id
     }  
 
     // === Test Functions ===
