@@ -159,7 +159,15 @@ module collection::nft {
     ) { 
         // let id: ID = 
         mint_func(
-            name, description, url, user, fractionId, ctx
+            name,
+            description,
+            url,
+            user,
+            fractionId,
+            Royalty{
+                artfi: ARTFI, artist: ARTIST, staking_contract: STAKING_CONTRACT
+            },
+            ctx
         );
 
         event::emit(NFTMinted {
@@ -189,6 +197,9 @@ module collection::nft {
                 *vector::borrow(uris, index),
                 user, 
                 *vector::borrow(fractionIds, index),
+                Royalty{
+                    artfi: ARTFI, artist: ARTIST, staking_contract: STAKING_CONTRACT 
+                },
                 ctx
             );
 
@@ -228,6 +239,7 @@ module collection::nft {
         url: vector<u8>,
         user: address,
         fractionId: u64,
+        royalty: Royalty,
         ctx: &mut TxContext
     ) {
         let nft = ArtFiNFT {
@@ -236,9 +248,7 @@ module collection::nft {
             name: name,
             description: description,
             url: url::new_unsafe_from_bytes(url),
-            royalty: Royalty{
-                artfi: ARTFI, artist: ARTIST, staking_contract: STAKING_CONTRACT 
-            }
+            royalty: royalty
         };
 
         transfer::public_transfer(nft, user);
