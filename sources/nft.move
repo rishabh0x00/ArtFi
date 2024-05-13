@@ -27,7 +27,7 @@ module collection::nft {
 
     struct ArtFiNFT has key, store {
         id: UID,
-        fractionId: u64,
+        fraction_id: u64,
         /// Name for the token
         name: String,
         /// Description of the token
@@ -70,6 +70,17 @@ module collection::nft {
         name: String,
         // number of tokens
         no_of_tokens: u64
+    }
+
+    struct NFTMetadataUpdated has copy, drop {
+        // The fraction ID of the NFT
+        fraction_id: u64,
+        /// Name for the token
+        name: String,
+        /// Description of the token
+        description: String,
+        /// URL for the token
+        url: Url,
     }
 
     // ===== Public view functions =====
@@ -143,6 +154,13 @@ module collection::nft {
         nft.description = new_description;
         nft.name = new_name;
         nft.url = new_url;
+
+        event::emit(NFTMetadataUpdated {
+            fraction_id: nft.fraction_id,
+            name: new_name,
+            description: new_description,
+            url: new_url
+        })
     }
 
     // === Admin Functions ===
@@ -154,7 +172,7 @@ module collection::nft {
         description: String,
         url: vector<u8>,
         user: address,
-        fractionId: u64,
+        fraction_id: u64,
         ctx: &mut TxContext
     ) { 
         // let id: ID = 
@@ -163,7 +181,7 @@ module collection::nft {
             description,
             url,
             user,
-            fractionId,
+            fraction_id,
             Royalty{
                 artfi: ARTFI, artist: ARTIST, staking_contract: STAKING_CONTRACT
             },
@@ -183,11 +201,11 @@ module collection::nft {
         description: String,
         uris: &vector<vector<u8>>,
         user: address,
-        fractionIds: &vector<u64>,
+        fraction_ids: &vector<u64>,
         ctx: &mut TxContext
     ) {
         let lengthOfVector = vector::length(uris);
-        assert!(lengthOfVector == vector::length(fractionIds), ELengthNotEqual);
+        assert!(lengthOfVector == vector::length(fraction_ids), ELengthNotEqual);
 
         let index = 0;
         while (index < lengthOfVector) {
@@ -196,7 +214,7 @@ module collection::nft {
                 description,
                 *vector::borrow(uris, index),
                 user, 
-                *vector::borrow(fractionIds, index),
+                *vector::borrow(fraction_ids, index),
                 Royalty{
                     artfi: ARTFI, artist: ARTIST, staking_contract: STAKING_CONTRACT 
                 },
@@ -215,7 +233,7 @@ module collection::nft {
 
     /// Permanently delete `nft`
     public entry fun burn(nft: ArtFiNFT, _: &mut TxContext) {
-        let ArtFiNFT { id, fractionId: _, name: _, description: _, url: _, royalty: _ } = nft;
+        let ArtFiNFT { id, fraction_id: _, name: _, description: _, url: _, royalty: _ } = nft;
         object::delete(id)
     }
 
@@ -238,13 +256,13 @@ module collection::nft {
         description: String,
         url: vector<u8>,
         user: address,
-        fractionId: u64,
+        fraction_id: u64,
         royalty: Royalty,
         ctx: &mut TxContext
     ) {
         let nft = ArtFiNFT {
             id: object::new(ctx),
-            fractionId,
+            fraction_id,
             name: name,
             description: description,
             url: url::new_unsafe_from_bytes(url),
@@ -263,12 +281,12 @@ module collection::nft {
         name: String,
         description: String,
         url: Url,
-        fractionId: u64,
+        fraction_id: u64,
         ctx: &mut TxContext
     ): ArtFiNFT {
         ArtFiNFT {
             id: object::new(ctx),
-            fractionId,
+            fraction_id,
             name: name,
             description: description,
             url: url,
