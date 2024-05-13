@@ -169,7 +169,7 @@ module collection::nft {
     }
     
     /// Create a multiple nft
-    public entry fun mint_nft_batch(
+    public fun mint_nft_batch(
         _: &Minter,
         name: String,
         description: String,
