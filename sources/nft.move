@@ -87,6 +87,13 @@ module collection::nft {
         staking_contract: u64,
     }
 
+    struct NFTRoyaltyUpdated has copy, drop {
+        nft_id: ID,
+        artfi: u64,
+        artist: u64,
+        staking_contract: u64,
+    }
+
     /// One-Time-Witness for the module.
     struct NFT has drop {}
 
@@ -208,18 +215,42 @@ module collection::nft {
     /// Update the defualt royalty
     public entry fun update_royalty(
         _: &MinterCap,
-        royalty: &mut RoyaltyInfo,
+        royalty_info: &mut RoyaltyInfo,
         new_artfi: u64,
         new_artist: u64,
         new_staking_contract: u64,
         _: &mut TxContext
     ) {
 
-        royalty.default_royalty.artfi = new_artfi;
-        royalty.default_royalty.artist = new_artist;
-        royalty.default_royalty.staking_contract = new_staking_contract;
+        royalty_info.default_royalty.artfi = new_artfi;
+        royalty_info.default_royalty.artist = new_artist;
+        royalty_info.default_royalty.staking_contract = new_staking_contract;
 
         event::emit(RoyaltyUpdated {
+            artfi: new_artfi,
+            artist: new_artist,
+            staking_contract: new_staking_contract
+        })
+    }
+
+    /// Update the defualt royalty
+    public entry fun update_nft_royalty(
+        _: &MinterCap,
+        royalty_info: &mut RoyaltyInfo,
+        id: ID,
+        new_artfi: u64,
+        new_artist: u64,
+        new_staking_contract: u64,
+        _: &mut TxContext
+    ) {
+
+        let royalty_nft = vec_map::get_mut(&mut (royalty_info.royalty_nft), &id);
+        royalty_nft.artfi = new_artfi;
+        royalty_nft.artist = new_artist;
+        royalty_nft.staking_contract = new_staking_contract;
+
+        event::emit(NFTRoyaltyUpdated {
+            nft_id: id,
             artfi: new_artfi,
             artist: new_artist,
             staking_contract: new_staking_contract
