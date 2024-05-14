@@ -3,14 +3,17 @@ module collection::nft {
 
     // === Imports ===
 
+    use sui::display;
     use sui::event;
     use sui::object::{Self, ID, UID};
     // use sui::object::{Self, UID};
-    use std::string::String;
+    use sui::package;
+    use std::string::{Self, String};
     use sui::transfer;
     use sui::tx_context::{Self, TxContext};
     use sui::url::{Self, Url};
     use std::vector;
+    use sui::vec_map;
 
     // ===== Error code ===== 
 
@@ -37,7 +40,8 @@ module collection::nft {
         royalty: Royalty
     }
 
-    struct Royalty has store, drop, copy {
+    struct Royalty has key, store {
+        id: UID,
         artfi: u64,
         artist: u64,
         staking_contract: u64
@@ -74,15 +78,20 @@ module collection::nft {
     }
 
     struct NFTMetadataUpdated has copy, drop {
-        // The fraction ID of the NFT
-        fraction_id: u64,
         /// Name for the token
         name: String,
         /// Description of the token
         description: String,
-        /// URL for the token
-        url: Url,
     }
+
+    struct RoyaltyUpdated has copy, drop {
+        artfi: u64,
+        artist: u64,
+        staking_contract: u64,
+    }
+
+    /// One-Time-Witness for the module.
+    struct NFT has drop {}
 
     // ===== Public view functions =====
 
@@ -124,7 +133,39 @@ module collection::nft {
     // ===== Entrypoints =====
 
     /// Module initializer is called only once on module publish.
-    fun init(ctx: &mut TxContext) {
+    fun init(otw: NFT, ctx: &mut TxContext) {
+        let keys = vector[
+            string::utf8(b"name"),
+            string::utf8(b"description"),
+        ];
+
+        let values = vector[
+            // For `name` one can use the `ArtFiNFT.name` property
+            string::utf8(b"{name}"),
+            // Description is static for all `ArtFiNFT` objects.
+            string::utf8(b"{description}!"),
+        ];
+
+        // Claim the `Publisher` for the package!
+        let publisher = package::claim(otw, ctx);
+
+        // Get a new `Display` object for the `ArtFiNFT` type.
+        let display_object = display::new_with_fields<ArtFiNFT>(
+            &publisher, keys, values, ctx
+        );
+
+        // Commit first version of `Display` to apply changes.
+        display::update_version(&mut display_object);
+
+        transfer::public_transfer(publisher, tx_context::sender(ctx));
+        transfer::public_share_object(display_object);
+        transfer::share_object(Royalty{
+            id: object::new(ctx),
+            artfi: 4,
+            artist: 3,
+            staking_contract: 3
+        });
+
         transfer::transfer(AdminCap {
             id: object::new(ctx)
         }, tx_context::sender(ctx));
@@ -144,23 +185,43 @@ module collection::nft {
     }
 
     /// Update the metadata of `nft`
-    public fun update_metadata(
+    public entry fun update_metadata(
         _: &MinterCap,
-        nft: &mut ArtFiNFT,
+        display_object: &mut display::Display<ArtFiNFT>,
         new_description: String,
         new_name: String,
-        new_url: Url,
         _: &mut TxContext
     ) {
-        nft.description = new_description;
-        nft.name = new_name;
-        nft.url = new_url;
+
+        display::edit(display_object, string::utf8(b"name"), new_name);
+        display::edit(display_object, string::utf8(b"description"), new_description);
+
+        display::update_version(display_object);
 
         event::emit(NFTMetadataUpdated {
-            fraction_id: nft.fraction_id,
             name: new_name,
             description: new_description,
-            url: new_url
+        })
+    }
+
+    /// Update the metadata of `nft`
+    public entry fun update_royalty(
+        _: &MinterCap,
+        royalty: &mut Royalty,
+        new_artfi: u64,
+        new_artist: u64,
+        new_staking_contract: u64,
+        _: &mut TxContext
+    ) {
+
+        royalty.artfi = new_artfi;
+        royalty.artist = new_artist;
+        royalty.staking_contract = new_staking_contract;
+
+        event::emit(RoyaltyUpdated {
+            artfi: new_artfi,
+            artist: new_artist,
+            staking_contract: new_staking_contract
         })
     }
 
@@ -169,57 +230,66 @@ module collection::nft {
     /// Create a new nft
     public entry fun mint_nft(
         _: &MinterCap,
-        name: String,
-        description: String,
+        display_object: &display::Display<ArtFiNFT>,
         url: vector<u8>,
         user: address,
         fraction_id: u64,
+        royalty: Royalty,
         ctx: &mut TxContext
     ) { 
+
+        let display_fields = display::fields(display_object);
+        let display_name = vec_map::get(display_fields, &string::utf8(b"name"));
+        let display_description = vec_map::get(display_fields, &string::utf8(b"description"));
+
         let id: ID = mint_func(
-            name,
-            description,
+            *display_name,
+            *display_description,
             url,
             user,
             fraction_id,
-            Royalty{
-                artfi: ARTFI, artist: ARTIST, staking_contract: STAKING_CONTRACT
-            },
+            &royalty,
             ctx
         );
+
+        transfer::share_object(royalty);
 
         event::emit(NFTMinted {
             token_id: id,
             creator: tx_context::sender(ctx),
-            name: name,
+            name: *display_name,
         });
     }
     
     /// Create a multiple nft
     public fun mint_nft_batch(
         _: &MinterCap,
-        name: String,
-        description: String,
+        display_object: &display::Display<ArtFiNFT>,
+        royalty: Royalty,
         uris: &vector<vector<u8>>,
-        user: address,
+        user: &vector<address>,
         fraction_ids: &vector<u64>,
         ctx: &mut TxContext
     ) {
         let lengthOfVector = vector::length(uris);
         assert!(lengthOfVector == vector::length(fraction_ids), ELengthNotEqual);
+        assert!(lengthOfVector == vector::length(user), ELengthNotEqual);
 
         let ids: vector<ID> = vector[];
         let index = 0;
+
+        let display_fields = display::fields(display_object);
+        let display_name = vec_map::get(display_fields, &string::utf8(b"name"));
+        let display_description = vec_map::get(display_fields, &string::utf8(b"description"));
+
         while (index < lengthOfVector) {
             let id = mint_func(
-                name,
-                description,
+                *display_name,
+                *display_description,
                 *vector::borrow(uris, index),
-                user, 
+                *vector::borrow(user, index), 
                 *vector::borrow(fraction_ids, index),
-                Royalty{
-                    artfi: ARTFI, artist: ARTIST, staking_contract: STAKING_CONTRACT 
-                },
+                &royalty,
                 ctx
             );
 
@@ -227,18 +297,22 @@ module collection::nft {
             vector::push_back(&mut ids, id);
         };
 
+        transfer::share_object(royalty);
+
         event::emit(NFTBatchMinted {
             token_ids: ids,
             creator: tx_context::sender(ctx),
-            name: name,
+            name: *display_name,
             no_of_tokens: lengthOfVector
         });
     }
 
     /// Permanently delete `nft`
     public entry fun burn(nft: ArtFiNFT, _: &mut TxContext) {
-        let ArtFiNFT { id, fraction_id: _, name: _, description: _, url: _, royalty: _ } = nft;
-        object::delete(id)
+        let ArtFiNFT { id, fraction_id: _, name: _, description: _, url: _, royalty } = nft;
+        object::delete(id);
+        
+        transfer::share_object(royalty);
     }
 
     /// transfer AdminCap to newOwner
@@ -253,6 +327,16 @@ module collection::nft {
         }, minterOwner);
     }
 
+    /// transfer publisher object to minterOwner
+    public entry fun transfer_publisher_object(_: &AdminCap, publisher_object: package::Publisher ,newOwner: address, _: &mut TxContext) {
+        transfer::public_transfer(publisher_object, newOwner);
+    }
+
+    /// transfer Upgrade to newOwner
+    public entry fun transfer_upgrade_cap(_: &AdminCap, upgradeCap: package::UpgradeCap ,newOwner: address, _: &mut TxContext) {
+        transfer::public_transfer(upgradeCap, newOwner);
+    }
+
     // === Private Functions ===
     
     fun mint_func(
@@ -261,7 +345,7 @@ module collection::nft {
         url: vector<u8>,
         user: address,
         fraction_id: u64,
-        royalty: Royalty,
+        royalty: &Royalty,
         ctx: &mut TxContext
      ) : ID {
         let nft = ArtFiNFT {
@@ -270,7 +354,9 @@ module collection::nft {
             name: name,
             description: description,
             url: url::new_unsafe_from_bytes(url),
-            royalty: royalty
+            royalty: Royalty{
+                id: object::new(ctx), artfi: royalty.artfi, artist: royalty.artist, staking_contract: royalty.staking_contract
+            }
         };
 
         let _id = object::id(&nft);
@@ -295,7 +381,7 @@ module collection::nft {
             description: description,
             url: url,
             royalty: Royalty{
-                artfi: ARTFI, artist: ARTIST, staking_contract: STAKING_CONTRACT 
+                id: object::new(ctx), artfi: ARTFI, artist: ARTIST, staking_contract: STAKING_CONTRACT 
             }
         }
     }
@@ -303,7 +389,7 @@ module collection::nft {
     #[test_only]
     public fun new_royalty(): Royalty {
         Royalty {
-            artfi: ARTFI, artist: ARTIST, staking_contract: STAKING_CONTRACT  
+            id: object::new(&mut tx_context::dummy()), artfi: ARTFI, artist: ARTIST, staking_contract: STAKING_CONTRACT  
         }
     }
     
@@ -311,6 +397,6 @@ module collection::nft {
     public fun test_init(
         ctx: &mut TxContext
     ) {
-        init(ctx);
+        init(NFT{},ctx);
     }
 }
