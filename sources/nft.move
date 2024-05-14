@@ -250,10 +250,12 @@ module collection::nft {
         _: &mut TxContext
     ) {
 
-        let royalty_nft = vec_map::get_mut(&mut (royalty_info.royalty_nft), &id);
-        royalty_nft.artfi = new_artfi;
-        royalty_nft.artist = new_artist;
-        royalty_nft.staking_contract = new_staking_contract;
+        vec_map::remove(&mut royalty_info.royalty_nft, &id);
+        vec_map::insert(&mut royalty_info.royalty_nft, id, Royalty{
+            artfi: new_artfi, 
+            artist: new_artist, 
+            staking_contract: new_staking_contract
+        });
 
         event::emit(NFTRoyaltyUpdated {
             nft_id: id,
@@ -443,6 +445,13 @@ module collection::nft {
         RoyaltyInfo {
             id: object::new(&mut tx_context::dummy()), royalty_nft: vec_map::empty<ID, Royalty>(), default_royalty: royalty
         }
+    }
+
+    #[test_only]
+    public fun get_default_royalty_fields(
+        royalty: &RoyaltyInfo
+    ): (u64, u64, u64) {
+        (royalty.default_royalty.artfi, royalty.default_royalty.artist, royalty.default_royalty.staking_contract)
     }
     
     #[test_only]
