@@ -114,6 +114,12 @@ module collection::nft {
         &nft.url
     }
 
+    /// Get the NFT's `ID`
+    public fun id(nft: &ArtFiNFT): ID {
+        object::id(nft)
+    }
+
+
     /// Get Royalty of NFT's
     public fun royalty(nft: &ArtFiNFT, royalty_info: &RoyaltyInfo): Royalty {
         *(vec_map::get(&royalty_info.royalty_nft, &object::id(nft)))
