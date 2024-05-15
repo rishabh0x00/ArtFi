@@ -1,4 +1,4 @@
-#[allow(lint(self_transfer))]
+#[allow(lint(share_owned, self_transfer))]
 module collection::nft {
 
     // === Imports ===
@@ -6,7 +6,6 @@ module collection::nft {
     use sui::display;
     use sui::event;
     use sui::object::{Self, ID, UID};
-    // use sui::object::{Self, UID};
     use sui::package;
     use std::string::{Self, String};
     use sui::transfer;
@@ -119,7 +118,6 @@ module collection::nft {
         object::id(nft)
     }
 
-
     /// Get Royalty of NFT's
     public fun royalty(nft: &ArtFiNFT, royalty_info: &RoyaltyInfo): Royalty {
         *(vec_map::get(&royalty_info.royalty_nft, &object::id(nft)))
@@ -206,7 +204,6 @@ module collection::nft {
         new_name: String,
         _: &mut TxContext
     ) {
-
         display::edit(display_object, string::utf8(b"name"), new_name);
         display::edit(display_object, string::utf8(b"description"), new_description);
 
@@ -227,7 +224,6 @@ module collection::nft {
         new_staking_contract: u64,
         _: &mut TxContext
     ) {
-
         royalty_info.default_royalty.artfi = new_artfi;
         royalty_info.default_royalty.artist = new_artist;
         royalty_info.default_royalty.staking_contract = new_staking_contract;
@@ -249,7 +245,6 @@ module collection::nft {
         new_staking_contract: u64,
         _: &mut TxContext
     ) {
-
         vec_map::remove(&mut royalty_info.royalty_nft, &id);
         vec_map::insert(&mut royalty_info.royalty_nft, id, Royalty{
             artfi: new_artfi, 
@@ -277,7 +272,6 @@ module collection::nft {
         royalty_info: &mut RoyaltyInfo,
         ctx: &mut TxContext
     ) { 
-
         let display_fields = display::fields(display_object);
         let display_name = vec_map::get(display_fields, &string::utf8(b"name"));
         let display_description = vec_map::get(display_fields, &string::utf8(b"description"));
