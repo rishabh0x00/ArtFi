@@ -346,26 +346,26 @@ module collection::nft {
         object::delete(id);
     }
 
-    /// transfer AdminCap to newOwner
-    public entry fun transfer_admin_cap(adminCap: AdminCap, newOwner: address) {
-        transfer::transfer(adminCap, newOwner);
+    /// transfer AdminCap to new_owner
+    public entry fun transfer_admin_cap(admin_cap: AdminCap, new_owner: address) {
+        transfer::transfer(admin_cap, new_owner);
     }
 
-    /// transfer new instance of MinterCap to minterOwner
-    public entry fun transfer_minter_cap(_: &AdminCap, minterOwner: address, ctx: &mut TxContext) {
+    /// transfer new instance of MinterCap to minter_owner
+    public entry fun transfer_minter_cap(_: &AdminCap, minter_owner: address, ctx: &mut TxContext) {
         transfer::transfer(MinterCap {
             id: object::new(ctx)
-        }, minterOwner);
+        }, minter_owner);
     }
 
-    /// transfer publisher object to minterOwner
-    public entry fun transfer_publisher_object(_: &AdminCap, publisher_object: package::Publisher ,newOwner: address, _: &mut TxContext) {
-        transfer::public_transfer(publisher_object, newOwner);
+    /// transfer publisher object to new_owner
+    public entry fun transfer_publisher_object(_: &AdminCap, publisher_object: package::Publisher ,new_owner: address, _: &mut TxContext) {
+        transfer::public_transfer(publisher_object, new_owner);
     }
 
-    /// transfer Upgrade to newOwner
-    public entry fun transfer_upgrade_cap(_: &AdminCap, upgradeCap: package::UpgradeCap ,newOwner: address, _: &mut TxContext) {
-        transfer::public_transfer(upgradeCap, newOwner);
+    /// transfer Upgrade to new_owner
+    public entry fun transfer_upgrade_cap(_: &AdminCap, upgradeCap: package::UpgradeCap ,new_owner: address, _: &mut TxContext) {
+        transfer::public_transfer(upgradeCap, new_owner);
     }
 
     // === Private Functions ===
