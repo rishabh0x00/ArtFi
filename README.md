@@ -3,35 +3,37 @@
 ## Prerequisites
 
 ### Install Sui
-You can also install Sui from binaries or from source, as detailed in the Install Sui page.
+You can install Sui from binaries or from source, as detailed on the Install Sui page.
 Go to [Install Sui](https://docs.sui.io/guides/developer/getting-started/sui-install).
 
-Should have set active address and have native tokens in your wallet to execute transactions
-
 ### Sui Address
-An address is a way to uniquely and anonymously identify an account that exists on the Sui blockchain network. In other words, an address is a way for a user to store and use tokens on the Sui network, without providing any personally identifying information
-[Sui Address](https://docs.sui.io/guides/developer/getting-started/get-address)
+An address  is a way to uniquely and anonymously identify an account that exists on the Sui blockchain network. 
+
+Should have set [active-address](https://docs.sui.io/guides/developer/getting-started/get-address) to execute transactions.
 
 ### Faucet Sui Tokens
-Sui faucet is a helpful tool where Sui developers can get free test SUI tokens to deploy and interact with their programs on Sui's Devnet and Testnet networks. There is no faucet for Sui Mainnet.
+You will also need native tokens in your wallet to execute transactions.
+
+Sui faucet is a helpful tool where Sui developers can get free test SUI tokens to deploy and interact with their programs on Sui's Devnet and Testnet networks.
 [Get Coins](https://docs.sui.io/guides/developer/getting-started/get-coins)
 
 ### Deploy NFT using script
-- should have jq, can install from here [Install jq](https://jqlang.github.io/jq/download/)
-- run `cd scripts && npm install` to install package
-- return to project directory
-- create .env file 
-    - add netork url in which your NFT will be deployed, like mainnet, testnet and devnet
-    - add deployer keystore, can found by running command `cat ~/.sui/sui_config/sui.keystore`
-- run `./deploy_script.sh` to deploy NFT
+
+- Should have `jq` installed. Follow the link to set it up [Install jq](https://jqlang.github.io/jq/download/)
+- Run `cd scripts && npm install` to install packages
+- Return to the project directory using `cd ..`
+- Create .env file 
+    - Add network URL in which your NFT will be deployed, like mainnet, testnet and devnet
+    - Add deployer keystore, it can be found by running the command `cat ~/.sui/sui_config/sui.keystore`
+- Run `./deploy_script.sh` to deploy NFT, which will ask for inputs through the following prompts:
     - Enter admin address, to transfer admin, publisher and upgrade ID
     - Enter name of NFT you want to give
     - Enter description of NFT
 
-## Cli Commands 
+## CLI Commands 
 
 ### Build
-Use the following command to build package:
+Use the following command to build the package:
 
 `sui move build`
 
@@ -45,7 +47,7 @@ A successful build returns a response similar to the following:
 ### Testing a package
 Sui includes support for the Move testing framework. Using the framework, you can write unit tests that analyze Move code much like test frameworks for other languages, such as the built-in Rust testing framework or the JUnit framework for Java.
 
-Use the following command to test package:
+Use the following command to test the package:
 
 `sui move test`
 
