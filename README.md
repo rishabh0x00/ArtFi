@@ -19,7 +19,7 @@ Sui faucet is a helpful tool where Sui developers can get free test SUI tokens t
 ### Deploy NFT using script
 - should have jq, can install from here [Install jq](https://jqlang.github.io/jq/download/)
 - run `cd scripts && npm install` to install package
-- return project directory
+- return to project directory
 - create .env file 
     - add netork url in which your NFT will be deployed, like mainnet, testnet and devnet
     - add deployer keystore, can found by running command `cat ~/.sui/sui_config/sui.keystore`
