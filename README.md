@@ -16,6 +16,14 @@ An address is a way to uniquely and anonymously identify an account that exists 
 Sui faucet is a helpful tool where Sui developers can get free test SUI tokens to deploy and interact with their programs on Sui's Devnet and Testnet networks. There is no faucet for Sui Mainnet.
 [Get Coins](https://docs.sui.io/guides/developer/getting-started/get-coins)
 
+### Deploy NFT using script
+- run `cd scripts && npm install` to install package
+- return project directory
+- run `./deploy_script.sh` to deploy NFT
+    - - Enter admin address, to transfer admin, publisher and upgrade ID
+    - - Enter name of NFT you want to give
+    - - Enter description of NFT
+
 ## Cli Commands 
 
 ### Build
