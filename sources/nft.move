@@ -20,7 +20,7 @@ module collection::nft {
 
     // === Structs ===
 
-    struct ArtFiNFT has key, store {
+    struct ArtfiNFT has key, store {
         id: UID,
         fraction_id: u64,
         /// Name for the token
@@ -99,42 +99,42 @@ module collection::nft {
     // ===== Public view functions =====
 
     /// Get the NFT's `name`
-    public fun name(nft: &ArtFiNFT): &String {
+    public fun name(nft: &ArtfiNFT): &String {
         &nft.name
     }
 
     /// Get the NFT's `description`
-    public fun description(nft: &ArtFiNFT): &String {
+    public fun description(nft: &ArtfiNFT): &String {
         &nft.description
     }
 
     /// Get the NFT's `url`
-    public fun url(nft: &ArtFiNFT): &Url {
+    public fun url(nft: &ArtfiNFT): &Url {
         &nft.url
     }
 
     /// Get the NFT's `ID`
-    public fun id(nft: &ArtFiNFT): ID {
+    public fun id(nft: &ArtfiNFT): ID {
         object::id(nft)
     }
 
     /// Get Royalty of NFT's
-    public fun royalty(nft: &ArtFiNFT, royalty_info: &RoyaltyInfo): Royalty {
+    public fun royalty(nft: &ArtfiNFT, royalty_info: &RoyaltyInfo): Royalty {
         *(vec_map::get(&royalty_info.royalty_nft, &object::id(nft)))
     }
 
     /// Get artfi Royalty of NFT's
-    public fun artfi_royalty(nft: &ArtFiNFT, royalty_info: &RoyaltyInfo): u64 {
+    public fun artfi_royalty(nft: &ArtfiNFT, royalty_info: &RoyaltyInfo): u64 {
         vec_map::get(&royalty_info.royalty_nft, &object::id(nft)).artfi
     }
 
     /// Get artist Royalty of NFT's
-    public fun artist_royalty(nft: &ArtFiNFT, royalty_info: &RoyaltyInfo): u64 {
+    public fun artist_royalty(nft: &ArtfiNFT, royalty_info: &RoyaltyInfo): u64 {
         vec_map::get(&royalty_info.royalty_nft, &object::id(nft)).artist
     }
 
     /// Get staking contract Royalty of NFT's
-    public fun staking_contract_royalty(nft: &ArtFiNFT, royalty_info: &RoyaltyInfo): u64 {
+    public fun staking_contract_royalty(nft: &ArtfiNFT, royalty_info: &RoyaltyInfo): u64 {
         vec_map::get(&royalty_info.royalty_nft, &object::id(nft)).staking_contract
     }
 
@@ -148,17 +148,17 @@ module collection::nft {
         ];
 
         let values = vector[
-            // For `name` one can use the `ArtFiNFT.name` property
-            string::utf8(b"ARTFI"),
-            // Description is static for all `ArtFiNFT` objects.
-            string::utf8(b"ARTFI_NFT"),
+            // For `name` one can use the `ArtfiNFT.name` property
+            string::utf8(b"Artfi"),
+            // Description is static for all `ArtfiNFT` objects.
+            string::utf8(b"Artfi_NFT"),
         ];
 
         // Claim the `Publisher` for the package!
         let publisher = package::claim(otw, ctx);
 
-        // Get a new `Display` object for the `ArtFiNFT` type.
-        let display_object = display::new_with_fields<ArtFiNFT>(
+        // Get a new `Display` object for the `ArtfiNFT` type.
+        let display_object = display::new_with_fields<ArtfiNFT>(
             &publisher, keys, values, ctx
         );
 
@@ -191,7 +191,7 @@ module collection::nft {
 
     /// Transfer `nft` to `recipient`
     public entry fun transfer_nft(
-        nft: ArtFiNFT, recipient: address, _: &mut TxContext
+        nft: ArtfiNFT, recipient: address, _: &mut TxContext
     ) {
         transfer::public_transfer(nft, recipient)
     }
@@ -199,7 +199,7 @@ module collection::nft {
     /// Update the metadata of `nft`
     public entry fun update_metadata(
         _: &MinterCap,
-        display_object: &mut display::Display<ArtFiNFT>,
+        display_object: &mut display::Display<ArtfiNFT>,
         new_description: String,
         new_name: String,
         _: &mut TxContext
@@ -265,7 +265,7 @@ module collection::nft {
     /// Create a new nft
     public entry fun mint_nft(
         _: &MinterCap,
-        display_object: &display::Display<ArtFiNFT>,
+        display_object: &display::Display<ArtfiNFT>,
         url: vector<u8>,
         user: address,
         fraction_id: u64,
@@ -296,7 +296,7 @@ module collection::nft {
     /// Create a multiple nft
     public fun mint_nft_batch(
         _: &MinterCap,
-        display_object: &display::Display<ArtFiNFT>,
+        display_object: &display::Display<ArtfiNFT>,
         royalty_info: &mut RoyaltyInfo,
         uris: &vector<vector<u8>>,
         user: &vector<address>,
@@ -338,11 +338,11 @@ module collection::nft {
     }
 
     /// Permanently delete `nft`
-    public entry fun burn(nft: ArtFiNFT, royalty_info: &mut RoyaltyInfo, _: &mut TxContext) {
+    public entry fun burn(nft: ArtfiNFT, royalty_info: &mut RoyaltyInfo, _: &mut TxContext) {
         let _id = object::id(&nft);
         let (_burn_id, _burn_royalty) = vec_map::remove(&mut royalty_info.royalty_nft, &_id);
         
-        let ArtFiNFT { id, fraction_id: _, name: _, description: _, url: _ } = nft;
+        let ArtfiNFT { id, fraction_id: _, name: _, description: _, url: _ } = nft;
         object::delete(id);
     }
 
@@ -379,7 +379,7 @@ module collection::nft {
         royalty_info: &mut RoyaltyInfo,
         ctx: &mut TxContext
      ) : ID {
-        let nft = ArtFiNFT {
+        let nft = ArtfiNFT {
             id: object::new(ctx),
             fraction_id,
             name: name,
@@ -408,8 +408,8 @@ module collection::nft {
         fraction_id: u64,
         royalty_info: &mut RoyaltyInfo,
         ctx: &mut TxContext
-    ): ArtFiNFT {
-        let nft = ArtFiNFT {
+    ): ArtfiNFT {
+        let nft = ArtfiNFT {
             id: object::new(ctx),
             fraction_id,
             name: name,
