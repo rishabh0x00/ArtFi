@@ -322,7 +322,7 @@ module collection::gop {
     }
 
     /// transfer AdminCap to new_owner
-    public entry fun transfer_admin_cap(admin_cap: AdminCap, new_owner: address) {
+    public entry fun transfer_admin_cap(admin_cap: AdminCap, new_owner: address, _: &mut TxContext) {
         transfer::transfer(admin_cap, new_owner);
     }
 
