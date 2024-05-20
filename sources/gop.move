@@ -49,20 +49,20 @@ module collection::gop {
     // ===== Events =====
 
     struct NFTMinted has copy, drop {
-        // The Object ID of the NFT
+        // The Object ID of the GOP
         token_id: ID,
-        // The creator of the NFT
+        // The creator of the GOP
         creator: address,
-        // The name of the NFT
+        // The name of the GOP
         name: String,
     }
 
     struct NFTBatchMinted has copy, drop {
-        // The Object IDs of Batch Minted NFTs
+        // The Object IDs of Batch Minted GOPs
         token_ids: vector<ID>,
-        // The creator of the NFT
+        // The creator of the GOP
         creator: address,
-        // The name of the NFT
+        // The name of the GOP
         name: String,
         // number of tokens
         no_of_tokens: u64
@@ -80,22 +80,22 @@ module collection::gop {
 
     // ===== Public view functions =====
 
-    /// Get the NFT's `name`
+    /// Get the GOP's `name`
     public fun name(nft: &GopNFT): &String {
         &nft.name
     }
 
-    /// Get the NFT's `description`
+    /// Get the GOP's `description`
     public fun description(nft: &GopNFT): &String {
         &nft.description
     }
 
-    /// Get the NFT's `url`
+    /// Get the GOP's `url`
     public fun url(nft: &GopNFT): &Url {
         &nft.url
     }
 
-    /// Get the NFT's `ID`
+    /// Get the GOP's `ID`
     public fun id(nft: &GopNFT): ID {
         object::id(nft)
     }
@@ -137,7 +137,7 @@ module collection::gop {
 
     // === Public-Mutative Functions ===
 
-    /// Create a new nft
+    /// Create a new GOP
     public entry fun mint_nft(
         display_object: &display::Display<GopNFT>,
         url: vector<u8>,
@@ -161,7 +161,7 @@ module collection::gop {
         });
     }
     
-    /// Create a multiple nft
+    /// Create a multiple GOP
     public fun mint_nft_batch(
         display_object: &display::Display<GopNFT>,
         uris: &vector<vector<u8>>,
@@ -195,14 +195,14 @@ module collection::gop {
         });
     }
 
-    /// Permanently delete `nft`
+    /// Permanently delete `GOP`
     public entry fun burn(nft: GopNFT, ctx: &mut TxContext) {
         assert!(tx_context::sender(ctx) == nft.owner, ENotOwner);
         let GopNFT { id, name: _, description: _, url: _ , owner: _, airdrop: _, claimed: _, ieo: _} = nft;
         object::delete(id);
     }
 
-    /// Transfer `nft` to `recipient`
+    /// Transfer `GOP` to `recipient`
     public entry fun transfer_nft(
         nft: &mut GopNFT, recipient: address, ctx: &mut TxContext
     ) {
@@ -212,7 +212,7 @@ module collection::gop {
 
     // === AdminCap Functions ===
 
-    /// Update the metadata of `nft`
+    /// Update the metadata of `GOP`
     public entry fun update_metadata(
         _: &AdminCap,
         display_object: &mut display::Display<GopNFT>,
