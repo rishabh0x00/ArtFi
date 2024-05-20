@@ -18,7 +18,6 @@ module collection::gop {
 
     // ===== Error code ===== 
 
-    const ELengthNotEqual: u64 = 1;
     const ENotOwner: u64 = 2;
 
     // === Structs ===
@@ -166,12 +165,9 @@ module collection::gop {
     public fun mint_nft_batch(
         display_object: &display::Display<GopNFT>,
         uris: &vector<vector<u8>>,
-        fraction_ids: &vector<u64>,
         ctx: &mut TxContext
     ) {
         let lengthOfVector = vector::length(uris);
-        assert!(lengthOfVector == vector::length(fraction_ids), ELengthNotEqual);
-
         let ids: vector<ID> = vector[];
         let index = 0;
 
