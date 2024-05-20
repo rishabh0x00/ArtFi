@@ -100,6 +100,11 @@ module collection::gop {
         object::id(nft)
     }
 
+    /// Get the GOP's `owner`
+    public fun owner(nft: &GopNFT): &address {
+        &nft.owner 
+    }
+
     // ===== Entrypoints =====
 
     /// Module initializer is called only once on module publish.
