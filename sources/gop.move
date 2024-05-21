@@ -20,16 +20,20 @@ module collection::gop {
 
     struct GopNFT has key, store {
         id: UID,
-        user_detials: vec_map::VecMap<ID, Gop>,
+        user_detials: vec_map::VecMap<ID, Attributes>,
     }
 
-    struct Gop has store, copy, drop {
+    struct Attributes has store, copy, drop {
         claimed: bool,
         airdrop: bool,
         ieo: bool
     }
 
     struct AdminCap has key {
+        id: UID
+    }
+
+    struct GopCap has key {
         id: UID
     }
 
@@ -76,7 +80,7 @@ module collection::gop {
 
         transfer::share_object(GopNFT {
             id: object::new(ctx),
-            user_detials: vec_map::empty<ID, Gop>(),
+            user_detials: vec_map::empty<ID, Attributes>(),
             
         });
 
@@ -97,7 +101,7 @@ module collection::gop {
     ) { 
         let id: ID = baseNFT::mint_nft(display_object, mint_counter, url, ctx);
 
-        vec_map::insert(&mut gop_info.user_detials, id, Gop{
+        vec_map::insert(&mut gop_info.user_detials, id, Attributes{
             claimed: false,
             airdrop: false,
             ieo: false
@@ -111,13 +115,14 @@ module collection::gop {
         gop_info: &mut GopNFT,
         mint_counter: &mut baseNFT::NftCounter,
         uris: &vector<vector<u8>>,
+        user: address,
         ctx: &mut TxContext
     ) {
-        let ids = baseNFT::mint_nft_batch(display_object, mint_counter, uris, ctx);
+        let ids = baseNFT::mint_nft_batch(display_object, mint_counter, uris, user, ctx);
         let lengthOfVector = vector::length(&ids);
         let index = 0;
         while (index < lengthOfVector) {
-            vec_map::insert(&mut gop_info.user_detials, *vector::borrow(&ids, index), Gop{
+            vec_map::insert(&mut gop_info.user_detials, *vector::borrow(&ids, index), Attributes{
                 claimed: false,
                 airdrop: false,
                 ieo: false
@@ -161,7 +166,7 @@ module collection::gop {
         new_ieo: bool
     ) {
         vec_map::remove(&mut gop_info.user_detials, &id);
-        vec_map::insert(&mut gop_info.user_detials, id, Gop{
+        vec_map::insert(&mut gop_info.user_detials, id, Attributes{
             claimed: new_claimed, 
             airdrop: new_airdrop, 
             ieo: new_ieo

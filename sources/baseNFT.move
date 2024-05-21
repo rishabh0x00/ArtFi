@@ -124,6 +124,7 @@ module collection::baseNFT {
             *display_name,
             *display_description,
             url,
+            tx_context::sender(ctx),
             ctx
         );
 
@@ -140,6 +141,7 @@ module collection::baseNFT {
         display_object: &display::Display<T>,
         mint_counter: &mut NftCounter,
         uris: &vector<vector<u8>>,
+        user: address,
         ctx: &mut TxContext
     ) : vector<ID> {
         check_mint_limit(mint_counter, ctx);
@@ -157,6 +159,7 @@ module collection::baseNFT {
                 *display_name,
                 *display_description,
                 *vector::borrow(uris, index),
+                user,
                 ctx
             );
 
@@ -193,6 +196,7 @@ module collection::baseNFT {
         name: String,
         description: String,
         url: vector<u8>,
+        user: address,
         ctx: &mut TxContext
      ) : ID {
         let nft = NFT<T> {
@@ -203,7 +207,7 @@ module collection::baseNFT {
         };
 
         let _id = object::id(&nft);
-        transfer::public_transfer(nft, tx_context::sender(ctx));
+        transfer::public_transfer(nft, user);
         _id
     } 
 
