@@ -170,13 +170,13 @@ module collection::baseNFT {
     }
 
     /// Permanently delete `NFT`
-    public fun burn<T: key + store>(nft: NFT<T>, _: &mut TxContext) {
+    public entry fun burn<T: key + store>(nft: NFT<T>, _: &mut TxContext) {
         let NFT { id, name: _, description: _, url: _ } = nft;
         object::delete(id);
     }
 
     /// Transfer `nft` to `recipient`
-    public fun transfer_nft<T: key + store>(
+    public entry fun transfer_nft<T: key + store>(
         nft: NFT<T>, recipient: address, _: &mut TxContext
     ) {
         transfer::public_transfer<NFT<T>>(nft, recipient)
@@ -185,7 +185,7 @@ module collection::baseNFT {
     // === AdminCap Functions ===
 
     /// Update the metadata of `NFT`
-    public fun update_metadata<T: key>(
+    public entry fun update_metadata<T: key>(
         _: &AdminCap,
         display_object: &mut display::Display<T>,
         new_description: String,
