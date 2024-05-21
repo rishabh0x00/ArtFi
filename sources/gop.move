@@ -18,7 +18,7 @@ module collection::gop {
 
     // === Structs ===
 
-    struct GopNFT has key, store {
+    struct GOPNFT has key, store {
         id: UID,
         user_detials: vec_map::VecMap<ID, Attributes>,
     }
@@ -33,13 +33,9 @@ module collection::gop {
         id: UID
     }
 
-    struct GopCap has key {
-        id: UID
-    }
-
     // ===== Events =====
 
-    struct GopUpdated has copy, drop {
+    struct GOPAttributesUpdated has copy, drop {
         claimed: bool,
         airdrop: bool,
         ieo: bool
@@ -58,17 +54,17 @@ module collection::gop {
         ];
 
         let values = vector[
-            // For `name` one can use the `GopNFT.name` property
+            // For `name` one can use the `GOPNFT.name` property
             string::utf8(b"Artfi"),
-            // Description is static for all `GopNFT` objects.
+            // Description is static for all `GOPNFT` objects.
             string::utf8(b"Artfi_NFT"),
         ];
 
         // Claim the `Publisher` for the package!
         let publisher = package::claim(otw, ctx);
 
-        // Get a new `Display` object for the `GopNFT` type.
-        let display_object = display::new_with_fields<GopNFT>(
+        // Get a new `Display` object for the `GOPNFT` type.
+        let display_object = display::new_with_fields<GOPNFT>(
             &publisher, keys, values, ctx
         );
 
@@ -78,7 +74,7 @@ module collection::gop {
         transfer::public_transfer(publisher, tx_context::sender(ctx));
         transfer::public_share_object(display_object);
 
-        transfer::share_object(GopNFT {
+        transfer::share_object(GOPNFT {
             id: object::new(ctx),
             user_detials: vec_map::empty<ID, Attributes>(),
             
@@ -93,8 +89,8 @@ module collection::gop {
 
     /// Create a new GOP
     public entry fun mint_nft(
-        display_object: &display::Display<GopNFT>,
-        gop_info: &mut GopNFT,
+        display_object: &display::Display<GOPNFT>,
+        gop_info: &mut GOPNFT,
         mint_counter: &mut baseNFT::NftCounter,
         url: vector<u8>,
         ctx: &mut TxContext
@@ -110,15 +106,15 @@ module collection::gop {
     
     /// Create a multiple GOP
     public fun mint_nft_batch(
-        _: &AdminCap,
-        display_object: &display::Display<GopNFT>,
-        gop_info: &mut GopNFT,
+        admin_cap: &baseNFT::AdminCap,
+        display_object: &display::Display<GOPNFT>,
+        gop_info: &mut GOPNFT,
         mint_counter: &mut baseNFT::NftCounter,
         uris: &vector<vector<u8>>,
         user: address,
         ctx: &mut TxContext
     ) {
-        let ids = baseNFT::mint_nft_batch(display_object, mint_counter, uris, user, ctx);
+        let ids = baseNFT::mint_nft_batch(admin_cap, display_object, mint_counter, uris, user, ctx);
         let lengthOfVector = vector::length(&ids);
         let index = 0;
         while (index < lengthOfVector) {
@@ -132,34 +128,11 @@ module collection::gop {
         }
     }
 
-    /// Permanently delete `GOP`
-    public entry fun burn<T: key + store>(nft: baseNFT::NFT<T>, ctx: &mut TxContext) {
-        baseNFT::burn(nft, ctx);
-    }
-
-    /// Transfer `GOP` to `recipient`
-    public entry fun transfer_nft<T: key + store>(
-        nft: baseNFT::NFT<T>, recipient: address, ctx: &mut TxContext
-    ) {
-        baseNFT::transfer_nft(nft, recipient, ctx);
-    }
-
     // === AdminCap Functions ===
-
-    /// Update the metadata of `GOP`
-    public entry fun update_metadata(
-        _: &AdminCap,
-        display_object: &mut display::Display<GopNFT>,
-        new_description: String,
-        new_name: String,
-        _: &mut TxContext
-    ) {
-        baseNFT::update_metadata(display_object, new_description, new_name);
-    }
 
     public entry fun update_attribute(
         _: &AdminCap,
-        gop_info: &mut GopNFT,
+        gop_info: &mut GOPNFT,
         id: ID,
         new_claimed: bool,
         new_airdrop: bool,
@@ -172,7 +145,7 @@ module collection::gop {
             ieo: new_ieo
         });
 
-        event::emit(GopUpdated {
+        event::emit(GOPAttributesUpdated {
             claimed: new_claimed,
             airdrop: new_airdrop,
             ieo: new_ieo

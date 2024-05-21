@@ -33,6 +33,10 @@ module collection::baseNFT {
         count: vec_map::VecMap<address,u64>,
     }
 
+    struct AdminCap has key {
+        id: UID
+    }
+
     // ===== Events =====
 
     struct NFTMinted has copy, drop {
@@ -65,12 +69,16 @@ module collection::baseNFT {
     // ===== Entrypoints =====
 
     /// Module initializer is called only once on module publish.
-    fun init(ctx: &mut TxContext) {
+    fun init(ctx: &mut TxContext){
 
-        transfer::share_object(NftCounter {
+        transfer::share_object(NftCounter{
             id: object::new(ctx),
             count: vec_map::empty<address, u64>()
         });
+
+        transfer::transfer(AdminCap {
+            id: object::new(ctx)
+        }, tx_context::sender(ctx));
     }
 
     // ===== Public view functions =====
@@ -88,23 +96,6 @@ module collection::baseNFT {
     /// Get the NFT's `url`
     public fun url<T: key + store>(nft: &NFT<T>): &Url {
         &nft.url
-    }
-
-     /// Update the metadata of `NFT`
-    public fun update_metadata<T: key>(
-        display_object: &mut display::Display<T>,
-        new_description: String,
-        new_name: String
-    ) {
-        display::edit(display_object, string::utf8(b"name"), new_name);
-        display::edit(display_object, string::utf8(b"description"), new_description);
-
-        display::update_version(display_object);
-
-        event::emit(NFTMetadataUpdated {
-            name: new_name,
-            description: new_description,
-        })
     }
 
     /// Create a new NFT
@@ -138,6 +129,7 @@ module collection::baseNFT {
     }
 
     public fun mint_nft_batch<T: key + store>(
+        _: &AdminCap,
         display_object: &display::Display<T>,
         mint_counter: &mut NftCounter,
         uris: &vector<vector<u8>>,
@@ -188,6 +180,31 @@ module collection::baseNFT {
         nft: NFT<T>, recipient: address, _: &mut TxContext
     ) {
         transfer::public_transfer<NFT<T>>(nft, recipient)
+    }
+
+    // === AdminCap Functions ===
+
+    /// Update the metadata of `NFT`
+    public fun update_metadata<T: key>(
+        _: &AdminCap,
+        display_object: &mut display::Display<T>,
+        new_description: String,
+        new_name: String
+    ) {
+        display::edit(display_object, string::utf8(b"name"), new_name);
+        display::edit(display_object, string::utf8(b"description"), new_description);
+
+        display::update_version(display_object);
+
+        event::emit(NFTMetadataUpdated {
+            name: new_name,
+            description: new_description,
+        })
+    }
+
+    /// transfer AdminCap to new_owner
+    public entry fun transfer_admin_cap(admin_cap: AdminCap, new_owner: address, _: &mut TxContext) {
+        transfer::transfer(admin_cap, new_owner);
     }
 
     // === Private Functions ===
