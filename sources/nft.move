@@ -166,7 +166,7 @@ module collection::nft {
         display::update_version(&mut display_object);
 
         transfer::public_transfer(publisher, tx_context::sender(ctx));
-        transfer::public_share_object(display_object);
+        transfer::public_transfer(display_object, tx_context::sender(ctx));
 
         transfer::share_object(RoyaltyInfo{
             id: object::new(ctx),
@@ -366,6 +366,11 @@ module collection::nft {
     /// transfer Upgrade to new_owner
     public entry fun transfer_upgrade_cap(_: &AdminCap, upgradeCap: package::UpgradeCap ,new_owner: address, _: &mut TxContext) {
         transfer::public_transfer(upgradeCap, new_owner);
+    }
+
+    /// transfer Upgrade to new_owner
+    public fun transfer_display_object(_: &AdminCap, display_object: display::Display<ArtfiNFT>, new_owner: address, _: &mut TxContext) {
+        transfer::public_transfer(display_object, new_owner);
     }
 
     // === Private Functions ===
