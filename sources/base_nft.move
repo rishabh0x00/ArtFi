@@ -1,5 +1,5 @@
 #[allow(lint(share_owned, self_transfer))]
-module collection::baseNFT {
+module collection::base_nft {
 
     use std::string::{Self, String};
     use std::vector;
@@ -12,10 +12,6 @@ module collection::baseNFT {
     use sui::url::{Self, Url};
     use sui::vec_map;
 
-    // ===== Error code ===== 
-
-    const ELimitExceed: u64 = 1;
-
     // === Structs ===
     #[allow(unused_type_parameter)]
     struct NFT<T: key> has key, store {
@@ -26,11 +22,6 @@ module collection::baseNFT {
         description: String,
         /// URL for the token
         url: Url
-    }
-
-    struct NftCounter has key, store {
-        id: UID,
-        count: vec_map::VecMap<address,u64>,
     }
 
     struct AdminCap has key {
@@ -71,11 +62,6 @@ module collection::baseNFT {
     /// Module initializer is called only once on module publish.
     fun init(ctx: &mut TxContext){
 
-        transfer::share_object(NftCounter{
-            id: object::new(ctx),
-            count: vec_map::empty<address, u64>()
-        });
-
         transfer::transfer(AdminCap {
             id: object::new(ctx)
         }, tx_context::sender(ctx));
@@ -100,13 +86,11 @@ module collection::baseNFT {
 
     /// Create a new NFT
     public fun mint_nft<T: key + store>(
+        _: &AdminCap,
         display_object: &display::Display<T>,
-        mint_counter: &mut NftCounter,
         url: vector<u8>,
         ctx: &mut TxContext
     ): ID { 
-        check_mint_limit(mint_counter, ctx);
-
         let display_fields = display::fields(display_object);
         let display_name = vec_map::get(display_fields, &string::utf8(b"name"));
         let display_description = vec_map::get(display_fields, &string::utf8(b"description"));
@@ -131,13 +115,10 @@ module collection::baseNFT {
     public fun mint_nft_batch<T: key + store>(
         _: &AdminCap,
         display_object: &display::Display<T>,
-        mint_counter: &mut NftCounter,
         uris: &vector<vector<u8>>,
         user: address,
         ctx: &mut TxContext
     ) : vector<ID> {
-        check_mint_limit(mint_counter, ctx);
-
         let lengthOfVector = vector::length(uris);
         let ids: vector<ID> = vector[];
         let index = 0;
@@ -185,7 +166,7 @@ module collection::baseNFT {
     // === AdminCap Functions ===
 
     /// Update the metadata of `NFT`
-    public entry fun update_metadata<T: key>(
+    public fun update_metadata<T: key>(
         _: &AdminCap,
         display_object: &mut display::Display<T>,
         new_description: String,
@@ -226,16 +207,5 @@ module collection::baseNFT {
         let _id = object::id(&nft);
         transfer::public_transfer(nft, user);
         _id
-    } 
-
-    fun check_mint_limit(
-        mint_counter: &mut NftCounter,
-        ctx: &TxContext
-    ) {
-        if (vec_map::contains(&mint_counter.count, &tx_context::sender(ctx))) {
-            assert!(*(vec_map::get(&mint_counter.count, &tx_context::sender(ctx))) <= 50,ELimitExceed);
-        } else {
-            vec_map::insert(&mut mint_counter.count, tx_context::sender(ctx), 1);
-        };
     } 
 }
