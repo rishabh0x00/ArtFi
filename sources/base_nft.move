@@ -61,7 +61,6 @@ module collection::base_nft {
 
     /// Module initializer is called only once on module publish.
     fun init(ctx: &mut TxContext){
-
         transfer::transfer(AdminCap {
             id: object::new(ctx)
         }, tx_context::sender(ctx));
@@ -88,6 +87,7 @@ module collection::base_nft {
     public fun mint_nft<T: key + store>(
         _: &AdminCap,
         display_object: &display::Display<T>,
+        user: address,
         url: vector<u8>,
         ctx: &mut TxContext
     ): ID { 
@@ -99,7 +99,7 @@ module collection::base_nft {
             *display_name,
             *display_description,
             url,
-            tx_context::sender(ctx),
+            user,
             ctx
         );
 

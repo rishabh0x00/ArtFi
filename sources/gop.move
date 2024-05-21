@@ -3,7 +3,7 @@ module collection::gop {
 
     // === Imports ===
 
-    use std::string::{Self, String};
+    use std::string;
     use std::vector;
 
     use sui::display;
@@ -106,11 +106,12 @@ module collection::gop {
         display_object: &display::Display<GOPNFT>,
         gop_info: &mut GOPNFT,
         mint_counter: &mut NftCounter,
+        user: address,
         url: vector<u8>,
         ctx: &mut TxContext
     ) { 
         check_mint_limit(mint_counter, ctx);
-        let id: ID = base_nft::mint_nft(admin_cap, display_object, url, ctx);
+        let id: ID = base_nft::mint_nft(admin_cap, display_object, user, url, ctx);
 
         vec_map::insert(&mut gop_info.user_detials, id, Attributes{
             claimed: false,
