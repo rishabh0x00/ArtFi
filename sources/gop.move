@@ -100,6 +100,48 @@ module collection::gop {
         }, tx_context::sender(ctx));
     }
 
+    // ===== Public view functions =====
+
+    /// Get the NFT's `name`
+    public fun name(nft: &GOPNFT): &String {
+        &nft.name
+    }
+
+    /// Get the NFT's `description`
+    public fun description(nft: &GOPNFT): &String {
+        &nft.description
+    }
+
+    /// Get the NFT's `url`
+    public fun url(nft: &GOPNFT): &Url {
+        &nft.url
+    }
+
+    /// Get the NFT's `ID`
+    public fun id(nft: &GOPNFT): ID {
+        object::id(nft)
+    }
+
+    /// Get Royalty of NFT's
+    public fun attributes(nft: &GOPNFT, attributes_info: &AttributesInfo): Attributes{
+        *(vec_map::get(&attributes_info.user_detials, &object::id(nft)))
+    }
+
+    /// Get artfi Royalty of NFT's
+    public fun claimed(nft: &GOPNFT, attributes_info: &AttributesInfo): bool {
+        vec_map::get(&attributes_info.user_detials, &object::id(nft)).claimed
+    }
+
+    /// Get artist Royalty of NFT's
+    public fun airdrop(nft: &GOPNFT, attributes_info: &AttributesInfo): bool {
+        vec_map::get(&attributes_info.user_detials, &object::id(nft)).airdrop
+    }
+
+    /// Get staking contract Royalty of NFT's
+    public fun ieo(nft: &GOPNFT, attributes_info: &AttributesInfo): bool {
+        vec_map::get(&attributes_info.user_detials, &object::id(nft)).ieo
+    }
+
     // === Public-Mutative Functions ===
 
     /// Create a new GOP
