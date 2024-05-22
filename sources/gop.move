@@ -36,8 +36,10 @@ module collection::gop {
         url: Url
     }
 
-    struct AttributesInfo has key, store {
+    struct NFTInfo has key, store {
         id: UID,
+        name: String,
+        description: String,
         user_detials: vec_map::VecMap<ID, Attributes>,
     }
 
@@ -96,8 +98,10 @@ module collection::gop {
         transfer::public_transfer(publisher, tx_context::sender(ctx));
         transfer::public_transfer(display_object, tx_context::sender(ctx));
 
-        transfer::share_object(AttributesInfo {
+        transfer::share_object(NFTInfo {
             id: object::new(ctx),
+            name: string::utf8(b"Artfi"),
+            description: string::utf8(b"Artfi NFT"),
             user_detials: vec_map::empty<ID, Attributes>(),  
         });
 
@@ -109,15 +113,6 @@ module collection::gop {
         transfer::transfer(AdminCap {
             id: object::new(ctx)
         }, tx_context::sender(ctx));
-    }
-
-    public fun init_buy_info<CointType>(_: &AdminCap, ctx: &mut TxContext) {
-        transfer::share_object(BuyInfo<CointType>{
-            id: object::new(ctx),
-            price: 10,
-            owner: tx_context::sender(ctx),
-            balance: balance::zero<CointType>()
-        });
     }
 
     // ===== Public view functions =====
@@ -143,23 +138,23 @@ module collection::gop {
     }
 
     /// Get Royalty of NFT's
-    public fun attributes(nft: &GOPNFT, attributes_info: &AttributesInfo): Attributes{
-        *(vec_map::get(&attributes_info.user_detials, &object::id(nft)))
+    public fun attributes(nft: &GOPNFT, nft_info: &NFTInfo): Attributes{
+        *(vec_map::get(&nft_info.user_detials, &object::id(nft)))
     }
 
     /// Get artfi Royalty of NFT's
-    public fun claimed(nft: &GOPNFT, attributes_info: &AttributesInfo): bool {
-        vec_map::get(&attributes_info.user_detials, &object::id(nft)).claimed
+    public fun claimed(nft: &GOPNFT, nft_info: &NFTInfo): bool {
+        vec_map::get(&nft_info.user_detials, &object::id(nft)).claimed
     }
 
     /// Get artist Royalty of NFT's
-    public fun airdrop(nft: &GOPNFT, attributes_info: &AttributesInfo): bool {
-        vec_map::get(&attributes_info.user_detials, &object::id(nft)).airdrop
+    public fun airdrop(nft: &GOPNFT, nft_info: &NFTInfo): bool {
+        vec_map::get(&nft_info.user_detials, &object::id(nft)).airdrop
     }
 
     /// Get staking contract Royalty of NFT's
-    public fun ieo(nft: &GOPNFT, attributes_info: &AttributesInfo): bool {
-        vec_map::get(&attributes_info.user_detials, &object::id(nft)).ieo
+    public fun ieo(nft: &GOPNFT, nft_info: &NFTInfo): bool {
+        vec_map::get(&nft_info.user_detials, &object::id(nft)).ieo
     }
 
     // === Public-Mutative Functions ===
@@ -167,8 +162,7 @@ module collection::gop {
     entry fun buy_gop<CoinType>(
         buy_info: &mut BuyInfo<CoinType>, 
         coin: coin::Coin<CoinType>,
-        display_object: &display::Display<GOPNFT>,
-        attributes_info: &mut AttributesInfo,
+        nft_info: &mut NFTInfo,
         mint_counter: &mut NftCounter,
         url: vector<u8>,
         ctx: &mut TxContext
@@ -178,20 +172,38 @@ module collection::gop {
         coin::put(&mut buy_info.balance, coin);
 
         mint_nft(
-            display_object,
-            attributes_info,
+            nft_info,
             mint_counter,
             tx_context::sender(ctx),
             url,
             ctx
         );
     }
+
+    /// Permanently delete `NFT`
+    public entry fun burn(nft: GOPNFT, nft_info: &mut NFTInfo, _: &mut TxContext) {
+        let _id = object::id(&nft);
+        let (_burn_id, _burn_attributes) = vec_map::remove(&mut nft_info.user_detials, &_id);
+        
+        let GOPNFT { id, name: _, description: _, url: _ } = nft;
+        object::delete(id);
+    }
+
+    // === AdminCap Functions ===
+
+    public fun init_buy_info<CointType>(_: &AdminCap, ctx: &mut TxContext) {
+        transfer::share_object(BuyInfo<CointType>{
+            id: object::new(ctx),
+            price: 10,
+            owner: tx_context::sender(ctx),
+            balance: balance::zero<CointType>()
+        });
+    }
     
     /// Create a multiple GOP
     public fun mint_nft_batch(
         _: &AdminCap,
-        display_object: &display::Display<GOPNFT>,
-        attributes_info: &mut AttributesInfo,
+        nft_info: &mut NFTInfo,
         mint_counter: &mut NftCounter,
         uris: &vector<vector<u8>>,
         user: address,
@@ -202,15 +214,9 @@ module collection::gop {
         let ids: vector<ID> = vector[];
         let index = 0;
 
-        let display_fields = display::fields(display_object);
-        let display_name = vec_map::get(display_fields, &string::utf8(b"name"));
-        let display_description = vec_map::get(display_fields, &string::utf8(b"description"));
-
         while (index < lengthOfVector) {
             let id: ID = mint_func(
-                attributes_info,
-                *display_name,
-                *display_description,
+                nft_info,
                 *vector::borrow(uris, index),
                 user,
                 ctx
@@ -220,29 +226,37 @@ module collection::gop {
             vector::push_back(&mut ids, id);
         };
 
-        base_nft::emit_batch_mint_nft(ids, lengthOfVector, tx_context::sender(ctx), *display_name);
+        base_nft::emit_batch_mint_nft(ids, lengthOfVector, tx_context::sender(ctx), nft_info.name);
     }
 
-    /// Permanently delete `NFT`
-    public entry fun burn(nft: GOPNFT, attributes_info: &mut AttributesInfo, _: &mut TxContext) {
-        let _id = object::id(&nft);
-        let (_burn_id, _burn_royalty) = vec_map::remove(&mut attributes_info.user_detials, &_id);
-        
-        let GOPNFT { id, name: _, description: _, url: _ } = nft;
-        object::delete(id);
-    }
+    /// Update the metadata of `NFT`
+    public fun update_metadata(
+        _: &AdminCap,
+        display_object: &mut display::Display<GOPNFT>,
+        nft_info: &mut NFTInfo,
+        new_description: String,
+        new_name: String
+    ) {
+        display::edit(display_object, string::utf8(b"name"), new_name);
+        display::edit(display_object, string::utf8(b"description"), new_description);
 
-    // === AdminCap Functions ===
+        nft_info.name = new_name;
+        nft_info.description = new_description;
+
+        display::update_version(display_object);
+
+        base_nft::emit_metadat_update(new_name, new_description);
+    }
 
     public entry fun update_attribute(
         _: &AdminCap,
-        attributes_info: &mut AttributesInfo,
+        nft_info: &mut NFTInfo,
         id: ID,
         new_claimed: bool,
         new_airdrop: bool,
         new_ieo: bool
     ) {
-        base_nft::update_attribute(&mut attributes_info.user_detials, id, Attributes{
+        base_nft::update_attribute(&mut nft_info.user_detials, id, Attributes{
             claimed: new_claimed,
             airdrop: new_airdrop,
             ieo: new_ieo
@@ -291,21 +305,6 @@ module collection::gop {
         transfer::transfer(admin_cap, new_owner);
     }
 
-    /// transfer publisher object to new_owner
-    public entry fun transfer_publisher_object(_: &AdminCap, publisher_object: package::Publisher ,new_owner: address, _: &mut TxContext) {
-        transfer::public_transfer(publisher_object, new_owner);
-    }
-
-    /// transfer Upgrade to new_owner
-    public entry fun transfer_upgrade_cap(_: &AdminCap, upgradeCap: package::UpgradeCap ,new_owner: address, _: &mut TxContext) {
-        transfer::public_transfer(upgradeCap, new_owner);
-    }
-
-    /// transfer Upgrade to new_owner
-    public fun transfer_display_object(_: &AdminCap, display_object: display::Display<GOPNFT>, new_owner: address, _: &mut TxContext) {
-        transfer::public_transfer(display_object, new_owner);
-    }
-
     // === Private Functions ===
 
     fun check_mint_limit(
@@ -322,23 +321,21 @@ module collection::gop {
     } 
     
     fun mint_func(
-        attributes_info: &mut AttributesInfo,
-        name: String,
-        description: String,
+        nft_info: &mut NFTInfo,
         url: vector<u8>,
         user: address,
         ctx: &mut TxContext
      ) : ID {
         let nft = GOPNFT{
             id: object::new(ctx),
-            name: name,
-            description: description,
+            name: nft_info.name,
+            description: nft_info.description,
             url: url::new_unsafe_from_bytes(url)
         };
 
         let _id = object::id(&nft);
 
-        vec_map::insert(&mut attributes_info.user_detials, _id, Attributes{
+        vec_map::insert(&mut nft_info.user_detials, _id, Attributes{
             claimed: false,
             airdrop: false,
             ieo: false
@@ -350,28 +347,22 @@ module collection::gop {
 
     /// Create a new GOP
     fun mint_nft(
-        display_object: &display::Display<GOPNFT>,
-        attributes_info: &mut AttributesInfo,
+        nft_info: &mut NFTInfo,
         mint_counter: &mut NftCounter,
         user: address,
         url: vector<u8>,
         ctx: &mut TxContext
     ) { 
         check_mint_limit(mint_counter, user);
-        let display_fields = display::fields(display_object);
-        let display_name = vec_map::get(display_fields, &string::utf8(b"name"));
-        let display_description = vec_map::get(display_fields, &string::utf8(b"description"));
 
         let id: ID = mint_func(
-            attributes_info,
-            *display_name,
-            *display_description,
+            nft_info,
             url,
             user,
             ctx
         );
 
-        base_nft::emit_mint_nft(id, tx_context::sender(ctx), *display_name);
+        base_nft::emit_mint_nft(id, tx_context::sender(ctx), nft_info.name);
     }
 
     // === Test Functions ===
