@@ -166,7 +166,10 @@ module collection::gop {
     }
 
     /// Permanently delete `NFT`
-    public entry fun burn(nft: GOPNFT, _: &mut TxContext) {
+    public entry fun burn(nft: GOPNFT, attributes_info: &mut AttributesInfo, _: &mut TxContext) {
+        let _id = object::id(&nft);
+        let (_burn_id, _burn_royalty) = vec_map::remove(&mut attributes_info.user_detials, &_id);
+        
         let GOPNFT { id, name: _, description: _, url: _ } = nft;
         object::delete(id);
     }
