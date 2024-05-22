@@ -73,7 +73,7 @@ module collection::gop {
         let publisher = package::claim(otw, ctx);
 
         // Get a new `Display` object for the `GOPNFT` type.
-        let display_object = display::new_with_fields<GOPNFT>(
+        let display_object = display::new_with_fields<base_nft::NFT<GOPNFT>>(
             &publisher, keys, values, ctx
         );
 
@@ -103,7 +103,7 @@ module collection::gop {
     /// Create a new GOP
     public entry fun mint_nft(
         admin_cap: &base_nft::AdminCap,
-        display_object: &display::Display<GOPNFT>,
+        display_object: &display::Display<base_nft::NFT<GOPNFT>>,
         gop_info: &mut GOPNFT,
         mint_counter: &mut NftCounter,
         user: address,
@@ -123,7 +123,7 @@ module collection::gop {
     /// Create a multiple GOP
     public fun mint_nft_batch(
         admin_cap: &base_nft::AdminCap,
-        display_object: &display::Display<GOPNFT>,
+        display_object: &display::Display<base_nft::NFT<GOPNFT>>,
         gop_info: &mut GOPNFT,
         mint_counter: &mut NftCounter,
         uris: &vector<vector<u8>>,
@@ -185,7 +185,7 @@ module collection::gop {
     }
 
     /// transfer Upgrade to new_owner
-    public fun transfer_display_object(_: &AdminCap, display_object: display::Display<GOPNFT>, new_owner: address, _: &mut TxContext) {
+    public fun transfer_display_object(_: &AdminCap, display_object: display::Display<base_nft::NFT<GOPNFT>>, new_owner: address, _: &mut TxContext) {
         transfer::public_transfer(display_object, new_owner);
     }
 
