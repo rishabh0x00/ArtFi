@@ -6,6 +6,8 @@ module collection::gop {
     use std::string::{Self, String};
     use std::vector;
 
+    use sui::balance::{Self, Balance};
+    use sui::coin;
     use sui::display;
     use sui::object::{Self, ID, UID};
     use sui::package;
@@ -19,6 +21,8 @@ module collection::gop {
     // ===== Error code ===== 
 
     const ELimitExceed: u64 = 1;
+    const EAmountIncorrect: u64 = 2;
+    const ENotOwner: u64 = 3;
 
     // === Structs ===
 
@@ -46,6 +50,13 @@ module collection::gop {
     struct NftCounter has key, store {
         id: UID,
         count: vec_map::VecMap<address,u64>,
+    }
+
+    struct BuyInfo<phantom CointType> has key {
+        id: UID,
+        price: u64,
+        owner: address,
+        balance: Balance<CointType>
     }
 
     struct AdminCap has key {
@@ -100,6 +111,15 @@ module collection::gop {
         }, tx_context::sender(ctx));
     }
 
+    public fun init_buy_info<CointType>(_: &AdminCap, ctx: &mut TxContext) {
+        transfer::share_object(BuyInfo<CointType>{
+            id: object::new(ctx),
+            price: 10,
+            owner: tx_context::sender(ctx),
+            balance: balance::zero<CointType>()
+        });
+    }
+
     // ===== Public view functions =====
 
     /// Get the NFT's `name`
@@ -144,31 +164,27 @@ module collection::gop {
 
     // === Public-Mutative Functions ===
 
-    /// Create a new GOP
-    public entry fun mint_nft(
-        _: &AdminCap,
+    entry fun buy_gop<CoinType>(
+        buy_info: &mut BuyInfo<CoinType>, 
+        coin: coin::Coin<CoinType>,
         display_object: &display::Display<GOPNFT>,
         attributes_info: &mut AttributesInfo,
         mint_counter: &mut NftCounter,
-        user: address,
         url: vector<u8>,
         ctx: &mut TxContext
-    ) { 
-        check_mint_limit(mint_counter, user);
-        let display_fields = display::fields(display_object);
-        let display_name = vec_map::get(display_fields, &string::utf8(b"name"));
-        let display_description = vec_map::get(display_fields, &string::utf8(b"description"));
+    ) {
+        assert!(buy_info.price == coin::value(&coin), EAmountIncorrect);
 
-        let id: ID = mint_func(
+        coin::put(&mut buy_info.balance, coin);
+
+        mint_nft(
+            display_object,
             attributes_info,
-            *display_name,
-            *display_description,
+            mint_counter,
+            tx_context::sender(ctx),
             url,
-            user,
             ctx
         );
-
-        base_nft::emit_mint_nft(id, tx_context::sender(ctx), *display_name);
     }
     
     /// Create a multiple GOP
@@ -233,6 +249,43 @@ module collection::gop {
         });
     }
 
+    /// update buy info owner
+    public entry fun update_buy_info_owner<CoinType>(
+        _: &AdminCap,
+        buy_info: &mut BuyInfo<CoinType>,
+        new_owner: address,
+        ctx: &TxContext
+    ) {
+        assert!(tx_context::sender(ctx) == buy_info.owner, ENotOwner);
+
+        buy_info.owner = new_owner;
+    }
+
+    /// update buy info price
+    public entry fun update_buy_info_price<CoinType>(
+        _: &AdminCap,
+        buy_info: &mut BuyInfo<CoinType>,
+        new_price: u64,
+        ctx: &TxContext
+    ) {
+        assert!(tx_context::sender(ctx) == buy_info.owner, ENotOwner);
+
+        buy_info.price = new_price;
+    }
+
+    /// update buy info price
+    public entry fun take_fees<CoinType>(
+        _: &AdminCap,
+        buy_info: &mut BuyInfo<CoinType>,
+        ctx: &mut TxContext
+    ) {
+        assert!(tx_context::sender(ctx) == buy_info.owner, ENotOwner);
+
+        let total_fees = balance::value(&buy_info.balance);
+        let collected_coin = coin::take(&mut buy_info.balance, total_fees, ctx);
+        transfer::public_transfer(collected_coin, buy_info.owner);
+    }
+
     /// transfer AdminCap to new_owner
     public entry fun transfer_admin_cap(admin_cap: AdminCap, new_owner: address, _: &mut TxContext) {
         transfer::transfer(admin_cap, new_owner);
@@ -267,8 +320,6 @@ module collection::gop {
             vec_map::insert(&mut mint_counter.count, user, 1);
         };
     } 
-
-    // === Private Functions ===
     
     fun mint_func(
         attributes_info: &mut AttributesInfo,
@@ -295,7 +346,33 @@ module collection::gop {
 
         transfer::public_transfer(nft, user);
         _id
-    } 
+    }
+
+    /// Create a new GOP
+    fun mint_nft(
+        display_object: &display::Display<GOPNFT>,
+        attributes_info: &mut AttributesInfo,
+        mint_counter: &mut NftCounter,
+        user: address,
+        url: vector<u8>,
+        ctx: &mut TxContext
+    ) { 
+        check_mint_limit(mint_counter, user);
+        let display_fields = display::fields(display_object);
+        let display_name = vec_map::get(display_fields, &string::utf8(b"name"));
+        let display_description = vec_map::get(display_fields, &string::utf8(b"description"));
+
+        let id: ID = mint_func(
+            attributes_info,
+            *display_name,
+            *display_description,
+            url,
+            user,
+            ctx
+        );
+
+        base_nft::emit_mint_nft(id, tx_context::sender(ctx), *display_name);
+    }
 
     // === Test Functions ===
 
