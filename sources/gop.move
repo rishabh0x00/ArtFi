@@ -3,16 +3,16 @@ module collection::gop {
 
     // === Imports ===
 
-    use std::string;
+    use std::string::{Self, String};
     use std::vector;
 
     use sui::display;
-    use sui::event;
     use sui::object::{Self, ID, UID};
     use sui::package;
     use sui::transfer;
     use sui::tx_context::{Self, TxContext};
     use sui::vec_map;
+    use sui::url::{Self, Url};
 
     use collection::base_nft;
 
@@ -23,6 +23,16 @@ module collection::gop {
     // === Structs ===
 
     struct GOPNFT has key, store {
+        id: UID,
+        /// Name for the token
+        name: String,
+        /// Description of the token
+        description: String,
+        /// URL for the token
+        url: Url
+    }
+
+    struct AttributesInfo has key, store {
         id: UID,
         user_detials: vec_map::VecMap<ID, Attributes>,
     }
@@ -40,14 +50,6 @@ module collection::gop {
 
     struct AdminCap has key {
         id: UID
-    }
-
-    // ===== Events =====
-
-    struct GOPAttributesUpdated has copy, drop {
-        claimed: bool,
-        airdrop: bool,
-        ieo: bool
     }
 
     /// One-Time-Witness for the module.
@@ -83,7 +85,7 @@ module collection::gop {
         transfer::public_transfer(publisher, tx_context::sender(ctx));
         transfer::public_transfer(display_object, tx_context::sender(ctx));
 
-        transfer::share_object(GOPNFT {
+        transfer::share_object(AttributesInfo {
             id: object::new(ctx),
             user_detials: vec_map::empty<ID, Attributes>(),  
         });
@@ -102,71 +104,88 @@ module collection::gop {
 
     /// Create a new GOP
     public entry fun mint_nft(
-        admin_cap: &base_nft::AdminCap,
+        _: &AdminCap,
         display_object: &display::Display<GOPNFT>,
-        gop_info: &mut GOPNFT,
+        attributes_info: &mut AttributesInfo,
         mint_counter: &mut NftCounter,
         user: address,
         url: vector<u8>,
         ctx: &mut TxContext
     ) { 
-        check_mint_limit(mint_counter, ctx);
-        let id: ID = base_nft::mint_nft(admin_cap, display_object, user, url, ctx);
+        check_mint_limit(mint_counter, user);
+        let display_fields = display::fields(display_object);
+        let display_name = vec_map::get(display_fields, &string::utf8(b"name"));
+        let display_description = vec_map::get(display_fields, &string::utf8(b"description"));
 
-        vec_map::insert(&mut gop_info.user_detials, id, Attributes{
-            claimed: false,
-            airdrop: false,
-            ieo: false
-        });
+        let id: ID = mint_func(
+            attributes_info,
+            *display_name,
+            *display_description,
+            url,
+            user,
+            ctx
+        );
+
+        base_nft::emit_mint_nft(id, tx_context::sender(ctx), *display_name);
     }
     
     /// Create a multiple GOP
     public fun mint_nft_batch(
-        admin_cap: &base_nft::AdminCap,
+        _: &AdminCap,
         display_object: &display::Display<GOPNFT>,
-        gop_info: &mut GOPNFT,
+        attributes_info: &mut AttributesInfo,
         mint_counter: &mut NftCounter,
         uris: &vector<vector<u8>>,
         user: address,
         ctx: &mut TxContext
     ) {
-        check_mint_limit(mint_counter, ctx);
-        let ids = base_nft::mint_nft_batch(admin_cap, display_object, uris, user, ctx);
-        let lengthOfVector = vector::length(&ids);
+        check_mint_limit(mint_counter, user);
+        let lengthOfVector = vector::length(uris);
+        let ids: vector<ID> = vector[];
         let index = 0;
+
+        let display_fields = display::fields(display_object);
+        let display_name = vec_map::get(display_fields, &string::utf8(b"name"));
+        let display_description = vec_map::get(display_fields, &string::utf8(b"description"));
+
         while (index < lengthOfVector) {
-            vec_map::insert(&mut gop_info.user_detials, *vector::borrow(&ids, index), Attributes{
-                claimed: false,
-                airdrop: false,
-                ieo: false
-            });
+            let id: ID = mint_func(
+                attributes_info,
+                *display_name,
+                *display_description,
+                *vector::borrow(uris, index),
+                user,
+                ctx
+            );
 
             index = index + 1;
-        }
+            vector::push_back(&mut ids, id);
+        };
+
+        base_nft::emit_batch_mint_nft(ids, lengthOfVector, tx_context::sender(ctx), *display_name);
+    }
+
+    /// Permanently delete `NFT`
+    public entry fun burn(nft: GOPNFT, _: &mut TxContext) {
+        let GOPNFT { id, name: _, description: _, url: _ } = nft;
+        object::delete(id);
     }
 
     // === AdminCap Functions ===
 
     public entry fun update_attribute(
         _: &AdminCap,
-        gop_info: &mut GOPNFT,
+        attributes_info: &mut AttributesInfo,
         id: ID,
         new_claimed: bool,
         new_airdrop: bool,
         new_ieo: bool
     ) {
-        vec_map::remove(&mut gop_info.user_detials, &id);
-        vec_map::insert(&mut gop_info.user_detials, id, Attributes{
-            claimed: new_claimed, 
-            airdrop: new_airdrop, 
-            ieo: new_ieo
-        });
-
-        event::emit(GOPAttributesUpdated {
+        base_nft::update_attribute(&mut attributes_info.user_detials, id, Attributes{
             claimed: new_claimed,
             airdrop: new_airdrop,
             ieo: new_ieo
-        })
+        });
     }
 
     /// transfer AdminCap to new_owner
@@ -193,15 +212,44 @@ module collection::gop {
 
     fun check_mint_limit(
         mint_counter: &mut NftCounter,
-        ctx: &TxContext
+        user: address
     ) {
-        if (vec_map::contains(&mint_counter.count, &tx_context::sender(ctx))) {
-            assert!(*(vec_map::get(&mint_counter.count, &tx_context::sender(ctx))) <= 50,ELimitExceed);
-            let counter = vec_map::get_mut(&mut mint_counter.count, &tx_context::sender(ctx));
+        if (vec_map::contains(&mint_counter.count, &user)) {
+            assert!(*(vec_map::get(&mint_counter.count, &user)) <= 50,ELimitExceed);
+            let counter = vec_map::get_mut(&mut mint_counter.count, &user);
             *counter = *counter + 1;
         } else {
-            vec_map::insert(&mut mint_counter.count, tx_context::sender(ctx), 1);
+            vec_map::insert(&mut mint_counter.count, user, 1);
         };
+    } 
+
+    // === Private Functions ===
+    
+    fun mint_func(
+        attributes_info: &mut AttributesInfo,
+        name: String,
+        description: String,
+        url: vector<u8>,
+        user: address,
+        ctx: &mut TxContext
+     ) : ID {
+        let nft = GOPNFT{
+            id: object::new(ctx),
+            name: name,
+            description: description,
+            url: url::new_unsafe_from_bytes(url)
+        };
+
+        let _id = object::id(&nft);
+
+        vec_map::insert(&mut attributes_info.user_detials, _id, Attributes{
+            claimed: false,
+            airdrop: false,
+            ieo: false
+        });
+
+        transfer::public_transfer(nft, user);
+        _id
     } 
 
     // === Test Functions ===

@@ -14,6 +14,8 @@ module collection::nft {
     use std::vector;
     use sui::vec_map;
 
+    use collection::base_nft;
+
     // ===== Error code ===== 
 
     const ELengthNotEqual: u64 = 1;
@@ -53,41 +55,7 @@ module collection::nft {
 
     // ===== Events =====
 
-    struct NFTMinted has copy, drop {
-        // The Object ID of the NFT
-        token_id: ID,
-        // The creator of the NFT
-        creator: address,
-        // The name of the NFT
-        name: String,
-    }
-
-    struct NFTBatchMinted has copy, drop {
-        // The Object IDs of Batch Minted NFTs
-        token_ids: vector<ID>,
-        // The creator of the NFT
-        creator: address,
-        // The name of the NFT
-        name: String,
-        // number of tokens
-        no_of_tokens: u64
-    }
-
-    struct NFTMetadataUpdated has copy, drop {
-        /// Name for the token
-        name: String,
-        /// Description of the token
-        description: String,
-    }
-
     struct RoyaltyUpdated has copy, drop {
-        artfi: u64,
-        artist: u64,
-        staking_contract: u64,
-    }
-
-    struct NFTRoyaltyUpdated has copy, drop {
-        nft_id: ID,
         artfi: u64,
         artist: u64,
         staking_contract: u64,
@@ -196,25 +164,6 @@ module collection::nft {
         transfer::public_transfer(nft, recipient)
     }
 
-    /// Update the metadata of `nft`
-    public entry fun update_metadata(
-        _: &MinterCap,
-        display_object: &mut display::Display<ArtfiNFT>,
-        new_description: String,
-        new_name: String,
-        _: &mut TxContext
-    ) {
-        display::edit(display_object, string::utf8(b"name"), new_name);
-        display::edit(display_object, string::utf8(b"description"), new_description);
-
-        display::update_version(display_object);
-
-        event::emit(NFTMetadataUpdated {
-            name: new_name,
-            description: new_description,
-        })
-    }
-
     /// Update the defualt royalty
     public entry fun update_royalty(
         _: &MinterCap,
@@ -245,19 +194,11 @@ module collection::nft {
         new_staking_contract: u64,
         _: &mut TxContext
     ) {
-        vec_map::remove(&mut royalty_info.royalty_nft, &id);
-        vec_map::insert(&mut royalty_info.royalty_nft, id, Royalty{
-            artfi: new_artfi, 
-            artist: new_artist, 
-            staking_contract: new_staking_contract
-        });
-
-        event::emit(NFTRoyaltyUpdated {
-            nft_id: id,
+        base_nft::update_attribute(&mut royalty_info.royalty_nft, id, Royalty{
             artfi: new_artfi,
             artist: new_artist,
             staking_contract: new_staking_contract
-        })
+        });
     }
 
     // === AdminCap Functions ===
@@ -286,11 +227,7 @@ module collection::nft {
             ctx
         );
 
-        event::emit(NFTMinted {
-            token_id: id,
-            creator: tx_context::sender(ctx),
-            name: *display_name,
-        });
+        base_nft::emit_mint_nft(id, tx_context::sender(ctx), *display_name);
     }
     
     /// Create a multiple nft
@@ -329,12 +266,7 @@ module collection::nft {
             vector::push_back(&mut ids, id);
         };
 
-        event::emit(NFTBatchMinted {
-            token_ids: ids,
-            creator: tx_context::sender(ctx),
-            name: *display_name,
-            no_of_tokens: lengthOfVector
-        });
+        base_nft::emit_batch_mint_nft(ids, lengthOfVector, tx_context::sender(ctx), *display_name);
     }
 
     /// Permanently delete `nft`
