@@ -152,13 +152,6 @@ module collection::nft {
 
     // === Public-Mutative Functions ===
 
-    /// Transfer `nft` to `recipient`
-    public entry fun transfer_nft(
-        nft: ArtfiNFT, recipient: address, _: &mut TxContext
-    ) {
-        transfer::public_transfer(nft, recipient)
-    }
-
     /// Permanently delete `nft`
     public entry fun burn(nft: ArtfiNFT, nft_info: &mut NFTInfo, _: &mut TxContext) {
         let _id = object::id(&nft);
@@ -369,5 +362,11 @@ module collection::nft {
         ctx: &mut TxContext
     ) {
         init(NFT{},ctx);
+    }
+
+    #[test_only]
+    public fun description(display: &display::Display<ArtfiNFT>): String {
+        let fields = display::fields(display);
+        *vec_map::get(fields, &string::utf8(b"description"))
     }
 }
