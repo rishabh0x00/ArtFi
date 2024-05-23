@@ -268,10 +268,8 @@ module collection::gop {
         _: &AdminCap,
         buy_info: &mut BuyInfo<CoinType>,
         new_owner: address,
-        ctx: &TxContext
+        _: &TxContext
     ) {
-        assert!(tx_context::sender(ctx) == buy_info.owner, ENotOwner);
-
         buy_info.owner = new_owner;
     }
 
@@ -280,16 +278,13 @@ module collection::gop {
         _: &AdminCap,
         buy_info: &mut BuyInfo<CoinType>,
         new_price: u64,
-        ctx: &TxContext
+        _: &TxContext
     ) {
-        assert!(tx_context::sender(ctx) == buy_info.owner, ENotOwner);
-
         buy_info.price = new_price;
     }
 
     /// update buy info price
     public entry fun take_fees<CoinType>(
-        _: &AdminCap,
         buy_info: &mut BuyInfo<CoinType>,
         ctx: &mut TxContext
     ) {
