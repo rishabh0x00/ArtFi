@@ -6,8 +6,6 @@ module collection::gap {
     use std::string::{Self, String};
     use std::vector;
 
-    use sui::balance::{Self, Balance};
-    use sui::coin;
     use sui::display;
     use sui::object::{Self, ID, UID};
     use sui::package;
@@ -17,12 +15,6 @@ module collection::gap {
     use sui::url::{Self, Url};
 
     use collection::base_nft;
-
-    // ===== Error code ===== 
-
-    const ELimitExceed: u64 = 1;
-    const EAmountIncorrect: u64 = 2;
-    const ENotOwner: u64 = 3;
 
     // === Structs ===
 
