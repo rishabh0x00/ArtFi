@@ -37,7 +37,6 @@ module collection::trophy {
     }
 
     struct Attributes has store, copy, drop {
-        fraction_id: u64,
         shipment_status: String
     }
 
@@ -119,11 +118,6 @@ module collection::trophy {
     /// Get Attributes of NFT's
     public fun attributes(nft: &TrophyNFT, nft_info: &NFTInfo): Attributes{
         *(vec_map::get(&nft_info.user_detials, &object::id(nft)))
-    }
-
-    /// Get fraction id of NFT's
-    public fun fraction_id(nft: &TrophyNFT, nft_info: &NFTInfo): u64 {
-        vec_map::get(&nft_info.user_detials, &object::id(nft)).fraction_id
     }
 
     /// Get shipment status of NFT's
@@ -215,11 +209,9 @@ module collection::trophy {
         _: &AdminCap,
         nft_info: &mut NFTInfo,
         id: ID,
-        fraction_id: u64,
         shipment_status: String,
     ) {
         base_nft::update_attribute(&mut nft_info.user_detials, id, Attributes{
-            fraction_id: fraction_id,
             shipment_status: shipment_status,
         });
     }
@@ -259,7 +251,6 @@ module collection::trophy {
         let _id = object::id(&nft);
 
         vec_map::insert(&mut nft_info.user_detials, _id, Attributes{
-            fraction_id: 0,
             shipment_status: string::utf8(b"")
         });
 
@@ -284,7 +275,6 @@ module collection::trophy {
 
         let _id = object::id(&nft);
         vec_map::insert(&mut nft_info.user_detials, _id, Attributes{
-            fraction_id: 0, 
             shipment_status: string::utf8(b""), 
         });
 
@@ -292,9 +282,9 @@ module collection::trophy {
     }
 
     #[test_only]
-    public fun new_attributes(fraction_id: u64, shipment_status: String): Attributes {
+    public fun new_attributes(shipment_status: String): Attributes {
         Attributes {
-            fraction_id, shipment_status
+            shipment_status
         }
     }
 
