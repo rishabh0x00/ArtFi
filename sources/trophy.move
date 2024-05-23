@@ -26,7 +26,7 @@ module collection::trophy {
 
     // === Structs ===
 
-    struct GOPNFT has key, store {
+    struct TrophyNFT has key, store {
         id: UID,
         /// Name for the token
         name: String,
@@ -74,17 +74,17 @@ module collection::trophy {
         ];
 
         let values = vector[
-            // For `name` one can use the `GOPNFT.name` property
+            // For `name` one can use the `TrophyNFT.name` property
             string::utf8(b"Artfi"),
-            // Description is static for all `GOPNFT` objects.
+            // Description is static for all `TrophyNFT` objects.
             string::utf8(b"Artfi NFT"),
         ];
 
         // Claim the `Publisher` for the package!
         let publisher = package::claim(otw, ctx);
 
-        // Get a new `Display` object for the `GOPNFT` type.
-        let display_object = display::new_with_fields<GOPNFT>(
+        // Get a new `Display` object for the `TrophyNFT` type.
+        let display_object = display::new_with_fields<TrophyNFT>(
             &publisher, keys, values, ctx
         );
 
@@ -113,38 +113,38 @@ module collection::trophy {
     // ===== Public view functions =====
 
     /// Get the NFT's `name`
-    public fun name(nft: &GOPNFT): &String {
+    public fun name(nft: &TrophyNFT): &String {
         &nft.name
     }
 
     /// Get the NFT's `url`
-    public fun url(nft: &GOPNFT): &Url {
+    public fun url(nft: &TrophyNFT): &Url {
         &nft.url
     }
 
     /// Get the NFT's `ID`
-    public fun id(nft: &GOPNFT): ID {
+    public fun id(nft: &TrophyNFT): ID {
         object::id(nft)
     }
 
     /// Get Attributes of NFT's
-    public fun attributes(nft: &GOPNFT, nft_info: &NFTInfo): Attributes{
+    public fun attributes(nft: &TrophyNFT, nft_info: &NFTInfo): Attributes{
         *(vec_map::get(&nft_info.user_detials, &object::id(nft)))
     }
 
     /// Get fraction id of NFT's
-    public fun fraction_id(nft: &GOPNFT, nft_info: &NFTInfo): u64 {
+    public fun fraction_id(nft: &TrophyNFT, nft_info: &NFTInfo): u64 {
         vec_map::get(&nft_info.user_detials, &object::id(nft)).fraction_id
     }
 
     /// Get shipment status of NFT's
-    public fun shipment_status(nft: &GOPNFT, nft_info: &NFTInfo): String {
+    public fun shipment_status(nft: &TrophyNFT, nft_info: &NFTInfo): String {
         vec_map::get(&nft_info.user_detials, &object::id(nft)).shipment_status
     }
 
     // === Public-Mutative Functions ===
 
-    entry fun buy_gop<CoinType>(
+    entry fun buy_trophy<CoinType>(
         buy_info: &mut BuyInfo<CoinType>, 
         coin: coin::Coin<CoinType>,
         nft_info: &mut NFTInfo,
@@ -175,11 +175,11 @@ module collection::trophy {
     }
 
     /// Permanently delete `NFT`
-    public entry fun burn(nft: GOPNFT, nft_info: &mut NFTInfo, _: &mut TxContext) {
+    public entry fun burn(nft: TrophyNFT, nft_info: &mut NFTInfo, _: &mut TxContext) {
         let _id = object::id(&nft);
         let (_burn_id, _burn_attributes) = vec_map::remove(&mut nft_info.user_detials, &_id);
         
-        let GOPNFT { id, name: _, url: _ } = nft;
+        let TrophyNFT { id, name: _, url: _ } = nft;
         object::delete(id);
     }
 
@@ -194,7 +194,7 @@ module collection::trophy {
         });
     }
     
-    /// Create a multiple GOP
+    /// Create a multiple Trophy
     public fun mint_nft_batch(
         _: &AdminCap,
         nft_info: &mut NFTInfo,
@@ -226,7 +226,7 @@ module collection::trophy {
     /// Update the metadata of `NFT`
     public fun update_metadata(
         _: &AdminCap,
-        display_object: &mut display::Display<GOPNFT>,
+        display_object: &mut display::Display<TrophyNFT>,
         nft_info: &mut NFTInfo,
         new_description: String,
         new_name: String
@@ -312,7 +312,7 @@ module collection::trophy {
         user: address,
         ctx: &mut TxContext
      ) : ID {
-        let nft = GOPNFT{
+        let nft = TrophyNFT{
             id: object::new(ctx),
             name: nft_info.name,
             url: url::new_unsafe_from_bytes(url)
@@ -329,7 +329,7 @@ module collection::trophy {
         _id
     }
 
-    /// Create a new GOP
+    /// Create a new Trophy
     fun mint_nft(
         nft_info: &mut NFTInfo,
         mint_counter: &mut NftCounter,
@@ -350,6 +350,48 @@ module collection::trophy {
     }
 
     // === Test Functions ===
+
+    #[test_only]
+    public fun new_trophy_nft(
+        name: String,
+        url: Url,
+        nft_info: &mut NFTInfo,
+        ctx: &mut TxContext
+    ): TrophyNFT {
+        let nft = TrophyNFT {
+            id: object::new(ctx),
+            name: name,
+            url: url
+        };
+
+        let _id = object::id(&nft);
+        vec_map::insert(&mut nft_info.user_detials, _id, Attributes{
+            fraction_id: 0, 
+            shipment_status: string::utf8(b""), 
+        });
+
+        nft
+    }
+
+    #[test_only]
+    public fun new_attributes(fraction_id: u64, shipment_status: String): Attributes {
+        Attributes {
+            fraction_id, shipment_status
+        }
+    }
+
+    #[test_only]
+    public fun new_nft_info(name: String): NFTInfo {
+        NFTInfo {
+            id: object::new(&mut tx_context::dummy()), name, user_detials: vec_map::empty<ID, Attributes>()
+        }
+    }
+
+    #[test_only]
+    public fun description(display: &display::Display<TrophyNFT>): String {
+        let fields = display::fields(display);
+        *vec_map::get(fields, &string::utf8(b"description"))
+    }
 
     #[test_only]
     public fun test_init(
