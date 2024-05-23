@@ -361,6 +361,50 @@ module collection::gop {
     // === Test Functions ===
 
     #[test_only]
+    public fun new_gop_nft(
+        name: String,
+        url: Url,
+        nft_info: &mut NFTInfo,
+        ctx: &mut TxContext
+    ): GOPNFT {
+        let nft = GOPNFT {
+            id: object::new(ctx),
+            name: name,
+            url: url
+        };
+
+        let _id = object::id(&nft);
+        vec_map::insert(&mut nft_info.user_detials, _id, Attributes{
+            claimed: false, 
+            airdrop: false, 
+            ieo: false
+        });
+
+        nft
+    }
+
+    #[test_only]
+    public fun new_attributes(claimed: bool, airdrop: bool, ieo: bool): Attributes {
+        Attributes {
+            claimed, airdrop, ieo
+        }
+    }
+
+    #[test_only]
+    public fun new_nft_info(name: String): NFTInfo {
+        NFTInfo {
+            id: object::new(&mut tx_context::dummy()), name, user_detials: vec_map::empty<ID, Attributes>()
+        }
+    }
+
+
+    #[test_only]
+    public fun description(display: &display::Display<GOPNFT>): String {
+        let fields = display::fields(display);
+        *vec_map::get(fields, &string::utf8(b"description"))
+    }
+
+    #[test_only]
     public fun test_init(
         ctx: &mut TxContext
     ) {
