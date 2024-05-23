@@ -6,8 +6,6 @@ module collection::trophy {
     use std::string::{Self, String};
     use std::vector;
 
-    use sui::balance::{Self, Balance};
-    use sui::coin;
     use sui::display;
     use sui::object::{Self, ID, UID};
     use sui::package;
@@ -21,8 +19,6 @@ module collection::trophy {
     // ===== Error code ===== 
 
     const ELimitExceed: u64 = 1;
-    const EAmountIncorrect: u64 = 2;
-    const ENotOwner: u64 = 3;
 
     // === Structs ===
 
@@ -48,13 +44,6 @@ module collection::trophy {
     struct NftCounter has key, store {
         id: UID,
         count: vec_map::VecMap<address,u64>,
-    }
-
-    struct BuyInfo<phantom CointType> has key {
-        id: UID,
-        price: u64,
-        owner: address,
-        balance: Balance<CointType>
     }
 
     struct AdminCap has key {
@@ -144,34 +133,24 @@ module collection::trophy {
 
     // === Public-Mutative Functions ===
 
-    entry fun buy_trophy<CoinType>(
-        buy_info: &mut BuyInfo<CoinType>, 
-        coin: coin::Coin<CoinType>,
+    /// Create a new Trophy
+    public entry fun mint_nft(
         nft_info: &mut NFTInfo,
         mint_counter: &mut NftCounter,
+        user: address,
         url: vector<u8>,
         ctx: &mut TxContext
     ) { 
-        let coin_value = coin::value(&coin);
-        let extra_coin: u64 = coin_value % buy_info.price;
-        assert!(extra_coin == 0, EAmountIncorrect);
+        check_mint_limit(mint_counter, user);
 
-        let no_of_nft_mint = coin_value / buy_info.price;
-        let index = 0;
-        while (index < no_of_nft_mint) {
-            mint_nft(
-                nft_info,
-                mint_counter,
-                tx_context::sender(ctx),
-                url,
-                ctx
-            );
+        let id: ID = mint_func(
+            nft_info,
+            url,
+            user,
+            ctx
+        );
 
-            index = index + 1;
-        };
-
-        coin::put(&mut buy_info.balance, coin);
-
+        base_nft::emit_mint_nft(id, tx_context::sender(ctx), nft_info.name);
     }
 
     /// Permanently delete `NFT`
@@ -184,15 +163,6 @@ module collection::trophy {
     }
 
     // === AdminCap Functions ===
-
-    public fun init_buy_info<CointType>(_: &AdminCap, price: u64, ctx: &mut TxContext) {
-        transfer::share_object(BuyInfo<CointType>{
-            id: object::new(ctx),
-            price: price,
-            owner: tx_context::sender(ctx),
-            balance: balance::zero<CointType>()
-        });
-    }
     
     /// Create a multiple Trophy
     public fun mint_nft_batch(
@@ -200,19 +170,19 @@ module collection::trophy {
         nft_info: &mut NFTInfo,
         mint_counter: &mut NftCounter,
         uris: &vector<vector<u8>>,
-        user: address,
+        user: &vector<address>,
         ctx: &mut TxContext
     ) {
-        check_mint_limit(mint_counter, user);
         let lengthOfVector = vector::length(uris);
         let ids: vector<ID> = vector[];
         let index = 0;
 
         while (index < lengthOfVector) {
+            check_mint_limit(mint_counter, *vector::borrow(user, index));
             let id: ID = mint_func(
                 nft_info,
                 *vector::borrow(uris, index),
-                user,
+                *vector::borrow(user, index),
                 ctx
             );
 
@@ -254,38 +224,6 @@ module collection::trophy {
         });
     }
 
-    /// update buy info owner
-    public entry fun update_buy_info_owner<CoinType>(
-        _: &AdminCap,
-        buy_info: &mut BuyInfo<CoinType>,
-        new_owner: address,
-        _: &TxContext
-    ) {
-        buy_info.owner = new_owner;
-    }
-
-    /// update buy info price
-    public entry fun update_buy_info_price<CoinType>(
-        _: &AdminCap,
-        buy_info: &mut BuyInfo<CoinType>,
-        new_price: u64,
-        _: &TxContext
-    ) {
-        buy_info.price = new_price;
-    }
-
-    /// update buy info price
-    public entry fun take_fees<CoinType>(
-        buy_info: &mut BuyInfo<CoinType>,
-        ctx: &mut TxContext
-    ) {
-        assert!(tx_context::sender(ctx) == buy_info.owner, ENotOwner);
-
-        let total_fees = balance::value(&buy_info.balance);
-        let collected_coin = coin::take(&mut buy_info.balance, total_fees, ctx);
-        transfer::public_transfer(collected_coin, buy_info.owner);
-    }
-
     /// transfer AdminCap to new_owner
     public entry fun transfer_admin_cap(admin_cap: AdminCap, new_owner: address, _: &mut TxContext) {
         transfer::transfer(admin_cap, new_owner);
@@ -298,7 +236,7 @@ module collection::trophy {
         user: address
     ) {
         if (vec_map::contains(&mint_counter.count, &user)) {
-            assert!(*(vec_map::get(&mint_counter.count, &user)) <= 50,ELimitExceed);
+            assert!(*(vec_map::get(&mint_counter.count, &user)) <= 1,ELimitExceed);
             let counter = vec_map::get_mut(&mut mint_counter.count, &user);
             *counter = *counter + 1;
         } else {
@@ -327,26 +265,6 @@ module collection::trophy {
 
         transfer::public_transfer(nft, user);
         _id
-    }
-
-    /// Create a new Trophy
-    fun mint_nft(
-        nft_info: &mut NFTInfo,
-        mint_counter: &mut NftCounter,
-        user: address,
-        url: vector<u8>,
-        ctx: &mut TxContext
-    ) { 
-        check_mint_limit(mint_counter, user);
-
-        let id: ID = mint_func(
-            nft_info,
-            url,
-            user,
-            ctx
-        );
-
-        base_nft::emit_mint_nft(id, tx_context::sender(ctx), nft_info.name);
     }
 
     // === Test Functions ===
