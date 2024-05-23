@@ -148,6 +148,16 @@ module collection::gop {
         vec_map::get(&nft_info.user_detials, &object::id(nft)).ieo
     }
 
+    /// Get ieo contract Attributes of NFT's
+    public fun balance_of_buy_info<CoinType>(buy_info: &BuyInfo<CoinType>): u64 {
+        balance::value(&buy_info.balance)
+    }
+
+    /// Get ieo contract Attributes of NFT's
+    public fun nft_mint_count(mint_counter: &NftCounter, user: address): u64 {
+        *vec_map::get(&mint_counter.count, &user)
+    }
+
     // === Public-Mutative Functions ===
 
     entry fun buy_gop<CoinType>(
