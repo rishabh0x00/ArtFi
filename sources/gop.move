@@ -30,8 +30,6 @@ module collection::gop {
         id: UID,
         /// Name for the token
         name: String,
-        /// Description of the token
-        description: String,
         /// URL for the token
         url: Url
     }
@@ -39,7 +37,6 @@ module collection::gop {
     struct NFTInfo has key, store {
         id: UID,
         name: String,
-        description: String,
         user_detials: vec_map::VecMap<ID, Attributes>,
     }
 
@@ -81,7 +78,7 @@ module collection::gop {
             // For `name` one can use the `GOPNFT.name` property
             string::utf8(b"Artfi"),
             // Description is static for all `GOPNFT` objects.
-            string::utf8(b"Artfi_NFT"),
+            string::utf8(b"Artfi NFT"),
         ];
 
         // Claim the `Publisher` for the package!
@@ -101,7 +98,6 @@ module collection::gop {
         transfer::share_object(NFTInfo {
             id: object::new(ctx),
             name: string::utf8(b"Artfi"),
-            description: string::utf8(b"Artfi NFT"),
             user_detials: vec_map::empty<ID, Attributes>(),  
         });
 
@@ -120,11 +116,6 @@ module collection::gop {
     /// Get the NFT's `name`
     public fun name(nft: &GOPNFT): &String {
         &nft.name
-    }
-
-    /// Get the NFT's `description`
-    public fun description(nft: &GOPNFT): &String {
-        &nft.description
     }
 
     /// Get the NFT's `url`
@@ -185,16 +176,16 @@ module collection::gop {
         let _id = object::id(&nft);
         let (_burn_id, _burn_attributes) = vec_map::remove(&mut nft_info.user_detials, &_id);
         
-        let GOPNFT { id, name: _, description: _, url: _ } = nft;
+        let GOPNFT { id, name: _, url: _ } = nft;
         object::delete(id);
     }
 
     // === AdminCap Functions ===
 
-    public fun init_buy_info<CointType>(_: &AdminCap, ctx: &mut TxContext) {
+    public fun init_buy_info<CointType>(_: &AdminCap, price: u64, ctx: &mut TxContext) {
         transfer::share_object(BuyInfo<CointType>{
             id: object::new(ctx),
-            price: 10,
+            price: price,
             owner: tx_context::sender(ctx),
             balance: balance::zero<CointType>()
         });
@@ -241,7 +232,6 @@ module collection::gop {
         display::edit(display_object, string::utf8(b"description"), new_description);
 
         nft_info.name = new_name;
-        nft_info.description = new_description;
 
         display::update_version(display_object);
 
@@ -324,7 +314,6 @@ module collection::gop {
         let nft = GOPNFT{
             id: object::new(ctx),
             name: nft_info.name,
-            description: nft_info.description,
             url: url::new_unsafe_from_bytes(url)
         };
 
