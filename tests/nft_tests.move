@@ -275,7 +275,7 @@ module collection::nft_tests {
         {
             let admin_cap = test_scenario::take_from_sender<nft::AdminCap>(&scenario);
 
-            nft::transfer_admin_cap(admin_cap, final_owner);
+            nft::transfer_admin_cap(admin_cap, final_owner, test_scenario::ctx(&mut scenario));
 
         };
 
@@ -697,7 +697,7 @@ module collection::nft_tests {
         {
             let admin_cap = test_scenario::take_from_sender<nft::AdminCap>(&scenario);
 
-            nft::transfer_admin_cap(admin_cap, final_owner);
+            nft::transfer_admin_cap(admin_cap, final_owner, test_scenario::ctx(&mut scenario));
 
         };
         
