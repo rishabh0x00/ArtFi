@@ -157,18 +157,27 @@ module collection::gop {
         mint_counter: &mut NftCounter,
         url: vector<u8>,
         ctx: &mut TxContext
-    ) {
-        assert!(buy_info.price == coin::value(&coin), EAmountIncorrect);
+    ) { 
+        let coin_value = coin::value(&coin);
+        let extra_coin: u64 = coin_value % buy_info.price;
+        assert!(extra_coin == 0, EAmountIncorrect);
+
+        let no_of_nft_mint = coin_value / buy_info.price;
+        let index = 0;
+        while (index < no_of_nft_mint) {
+            mint_nft(
+                nft_info,
+                mint_counter,
+                tx_context::sender(ctx),
+                url,
+                ctx
+            );
+
+            index = index + 1;
+        };
 
         coin::put(&mut buy_info.balance, coin);
 
-        mint_nft(
-            nft_info,
-            mint_counter,
-            tx_context::sender(ctx),
-            url,
-            ctx
-        );
     }
 
     /// Permanently delete `NFT`
