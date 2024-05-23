@@ -1,5 +1,5 @@
 #[allow(lint(share_owned, self_transfer))]
-module collection::gop {
+module collection::gap {
 
     // === Imports ===
 
@@ -41,8 +41,6 @@ module collection::gop {
     }
 
     struct Attributes has store, copy, drop {
-        claimed: bool,
-        airdrop: bool,
         ieo: bool
     }
 
@@ -63,12 +61,12 @@ module collection::gop {
     }
 
     /// One-Time-Witness for the module.
-    struct GOP has drop {}
+    struct GAP has drop {}
 
     // ===== Entrypoints =====
 
     /// Module initializer is called only once on module publish.
-    fun init(otw: GOP, ctx: &mut TxContext) {
+    fun init(otw: GAP, ctx: &mut TxContext) {
         let keys = vector[
             string::utf8(b"name"),
             string::utf8(b"description"),
@@ -133,17 +131,7 @@ module collection::gop {
         *(vec_map::get(&nft_info.user_detials, &object::id(nft)))
     }
 
-    /// Get claimed Attributes of NFT's
-    public fun claimed(nft: &GOPNFT, nft_info: &NFTInfo): bool {
-        vec_map::get(&nft_info.user_detials, &object::id(nft)).claimed
-    }
-
-    /// Get airdrop Attributes of NFT's
-    public fun airdrop(nft: &GOPNFT, nft_info: &NFTInfo): bool {
-        vec_map::get(&nft_info.user_detials, &object::id(nft)).airdrop
-    }
-
-    /// Get ieo contract Attributes of NFT's
+    /// Get ieo attributes of NFT's
     public fun ieo(nft: &GOPNFT, nft_info: &NFTInfo): bool {
         vec_map::get(&nft_info.user_detials, &object::id(nft)).ieo
     }
@@ -251,13 +239,9 @@ module collection::gop {
         _: &AdminCap,
         nft_info: &mut NFTInfo,
         id: ID,
-        new_claimed: bool,
-        new_airdrop: bool,
         new_ieo: bool
     ) {
         base_nft::update_attribute(&mut nft_info.user_detials, id, Attributes{
-            claimed: new_claimed,
-            airdrop: new_airdrop,
             ieo: new_ieo
         });
     }
@@ -329,8 +313,6 @@ module collection::gop {
         let _id = object::id(&nft);
 
         vec_map::insert(&mut nft_info.user_detials, _id, Attributes{
-            claimed: false,
-            airdrop: false,
             ieo: false
         });
 
@@ -364,6 +346,6 @@ module collection::gop {
     public fun test_init(
         ctx: &mut TxContext
     ) {
-        init(GOP{},ctx);
+        init(GAP{},ctx);
     }
 }
