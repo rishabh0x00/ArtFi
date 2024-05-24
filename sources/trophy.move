@@ -123,6 +123,11 @@ module collection::trophy {
         vec_map::get(&nft_info.id_detials, &object::id(nft)).fraction_id
     }
 
+    /// Get shipment status of the NFT
+    public fun fraction_to_nft_id(fraction_id: u64, nft_info: &NFTInfo): ID {
+        *vec_map::get(&nft_info.fraction_exist, &fraction_id)
+    }
+
     // === Public-Mutative Functions ===
 
     /// Create a new Trophy

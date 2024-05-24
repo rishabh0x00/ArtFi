@@ -16,7 +16,6 @@ module collection::gop_tests {
     #[test_only] use sui::test_scenario;
     #[test_only] use sui::display;
     #[test_only] use sui::coin;
-    #[test_only] use sui::balance;
 
     #[test]
     // test `name` function
