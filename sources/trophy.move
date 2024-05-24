@@ -133,7 +133,6 @@ module collection::trophy {
     /// Create a new Trophy
     public entry fun mint_nft(
         nft_info: &mut NFTInfo,
-        user: address,
         nft_object: &nft::ArtfiNFT,
         url: vector<u8>,
         ctx: &mut TxContext
@@ -144,7 +143,6 @@ module collection::trophy {
         let id: ID = mint_func(
             nft_info,
             url,
-            user,
             fraction_id,
             ctx
         );
@@ -210,7 +208,6 @@ module collection::trophy {
     fun mint_func(
         nft_info: &mut NFTInfo,
         url: vector<u8>,
-        user: address,
         fraction_id: u64,
         ctx: &mut TxContext
      ) : ID {
@@ -229,7 +226,7 @@ module collection::trophy {
 
         vec_map::insert(&mut nft_info.fraction_exist, fraction_id, _id);
 
-        transfer::public_transfer(nft, user);
+        transfer::public_transfer(nft, tx_context::sender(ctx));
         _id
     }
 
