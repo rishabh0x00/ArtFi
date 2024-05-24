@@ -230,7 +230,6 @@ module collection::gop_tests {
 
     #[test]
     fun test_mint_nft() {
-
         let url = b" ";
         let initial_owner = @0xCAFE;
         let final_owner = @0xFACE;
@@ -279,6 +278,7 @@ module collection::gop_tests {
             let nft_info = test_scenario::take_shared<gop::NFTInfo>(&scenario);
             assert!(gop::attributes(&nftToken, &nft_info) == attributes_instance, 3);
             assert!(gop::balance_of_buy_info(&buy_info) == 10, 4);
+            assert!(gop::nft_mint_count(&nft_info, final_owner) == 1, 4);
 
             test_utils::destroy<gop::GOPNFT>(nftToken);
             test_utils::destroy<gop::Attributes>(attributes_instance);
@@ -524,6 +524,145 @@ module collection::gop_tests {
 
             test_scenario::return_shared<gop::NFTInfo>(nft_info);  
             test_scenario::return_to_sender<gop::GOPNFT>(&scenario, nft_object);         
+        };
+
+        test_scenario::end(scenario);
+    }
+
+    #[test]
+    fun test_update_buy_info_owner() {
+        let initial_owner = @0xCAFE;
+        let final_owner = @0xFACE;
+
+        let scenario = test_scenario::begin(initial_owner);
+        {   
+            test_scenario::sender(&scenario);
+
+            gop::test_init(test_scenario::ctx(&mut scenario));
+
+        };
+
+        test_scenario::next_tx(&mut scenario, initial_owner);
+        {   
+            let admin_cap = test_scenario::take_from_sender<gop::AdminCap>(&scenario);
+            gop::init_buy_info<gop::GOPNFT>(&admin_cap, 10, test_scenario::ctx(&mut scenario));
+            test_scenario::return_to_sender<gop::AdminCap>(&scenario, admin_cap);
+        };
+
+        test_scenario::next_tx(&mut scenario, initial_owner);
+        {   
+            let admin_cap = test_scenario::take_from_sender<gop::AdminCap>(&scenario);
+            let buy_info = test_scenario::take_shared<gop::BuyInfo<gop::GOPNFT>>(&scenario);
+            gop::update_buy_info_owner<gop::GOPNFT>(&admin_cap, &mut buy_info, final_owner,  test_scenario::ctx(&mut scenario));
+            test_scenario::return_to_sender<gop::AdminCap>(&scenario, admin_cap);
+            test_scenario::return_shared(buy_info);
+        };
+
+        test_scenario::next_tx(&mut scenario, initial_owner);
+        {   
+            let buy_info = test_scenario::take_shared<gop::BuyInfo<gop::GOPNFT>>(&scenario);
+            assert!(gop::fees_owner<gop::GOPNFT>(&buy_info) == final_owner, 1);
+            test_scenario::return_shared(buy_info);
+        };
+
+        test_scenario::end(scenario);
+    }
+
+    #[test]
+    fun test_update_buy_info_price() {
+        let initial_owner = @0xCAFE;
+
+        let scenario = test_scenario::begin(initial_owner);
+        {   
+            test_scenario::sender(&scenario);
+
+            gop::test_init(test_scenario::ctx(&mut scenario));
+
+        };
+
+        test_scenario::next_tx(&mut scenario, initial_owner);
+        {   
+            let admin_cap = test_scenario::take_from_sender<gop::AdminCap>(&scenario);
+            gop::init_buy_info<gop::GOPNFT>(&admin_cap, 10, test_scenario::ctx(&mut scenario));
+            test_scenario::return_to_sender<gop::AdminCap>(&scenario, admin_cap);
+        };
+
+        test_scenario::next_tx(&mut scenario, initial_owner);
+        {   
+            let admin_cap = test_scenario::take_from_sender<gop::AdminCap>(&scenario);
+            let buy_info = test_scenario::take_shared<gop::BuyInfo<gop::GOPNFT>>(&scenario);
+            gop::update_buy_info_price<gop::GOPNFT>(&admin_cap, &mut buy_info, 15,  test_scenario::ctx(&mut scenario));
+            test_scenario::return_to_sender<gop::AdminCap>(&scenario, admin_cap);
+            test_scenario::return_shared(buy_info);
+        };
+
+        test_scenario::next_tx(&mut scenario, initial_owner);
+        {   
+            let buy_info = test_scenario::take_shared<gop::BuyInfo<gop::GOPNFT>>(&scenario);
+            assert!(gop::price<gop::GOPNFT>(&buy_info) == 15, 1);
+            test_scenario::return_shared(buy_info);
+        };
+
+        test_scenario::end(scenario);
+    }
+
+    #[test]
+    fun test_take_fees() {
+        let url = b" ";
+        let initial_owner = @0xCAFE;
+        let final_owner = @0xFACE;
+
+        let scenario = test_scenario::begin(initial_owner);
+        {   
+            test_scenario::sender(&scenario);
+
+            gop::test_init(test_scenario::ctx(&mut scenario));
+
+        };
+
+        test_scenario::next_tx(&mut scenario, initial_owner);
+        {   
+            let admin_cap = test_scenario::take_from_sender<gop::AdminCap>(&scenario);
+            gop::init_buy_info<gop::GOPNFT>(&admin_cap, 10, test_scenario::ctx(&mut scenario));
+            test_scenario::return_to_sender<gop::AdminCap>(&scenario, admin_cap);
+        };
+
+        test_scenario::next_tx(&mut scenario, final_owner);
+        {
+            let buy_info = test_scenario::take_shared<gop::BuyInfo<gop::GOPNFT>>(&scenario);
+            let nft_info = test_scenario::take_shared<gop::NFTInfo>(&scenario);
+            let coin: coin::Coin<gop::GOPNFT> = coin::mint_for_testing<gop::GOPNFT>(10, test_scenario::ctx(&mut scenario));
+            gop::buy_gop<gop::GOPNFT>(
+                &mut buy_info, 
+                coin,
+                &mut nft_info,
+                url,
+                test_scenario::ctx(&mut scenario)
+            );
+
+            test_scenario::return_shared(nft_info);
+            test_scenario::return_shared(buy_info);
+        };
+
+        test_scenario::next_tx(&mut scenario, initial_owner);
+        {
+            let buy_info = test_scenario::take_shared<gop::BuyInfo<gop::GOPNFT>>(&scenario);
+            gop::take_fees(&mut buy_info, test_scenario::ctx(&mut scenario));
+            test_scenario::return_shared(buy_info);
+        };
+
+        test_scenario::next_tx(&mut scenario, initial_owner);
+        {
+            let buy_info = test_scenario::take_shared<gop::BuyInfo<gop::GOPNFT>>(&scenario);
+            gop::take_fees(&mut buy_info, test_scenario::ctx(&mut scenario));
+            test_scenario::return_shared(buy_info);
+        };
+
+        test_scenario::next_tx(&mut scenario, initial_owner);
+        {
+            let buy_info = test_scenario::take_shared<gop::BuyInfo<gop::GOPNFT>>(&scenario);
+            assert!(gop::balance_of_buy_info(&buy_info) == 0, 1);
+            test_scenario::return_shared(buy_info);
         };
 
         test_scenario::end(scenario);
