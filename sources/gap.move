@@ -19,7 +19,7 @@ module collection::gap {
     // ===== Error code ===== 
 
     const ELimitExceed: u64 = 1;
-    const ELengthNotEqual: u64 = 1;
+    const ELengthNotEqual: u64 = 2;
 
     // === Structs ===
 
