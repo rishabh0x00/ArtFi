@@ -255,19 +255,16 @@ module collection::gop_tests {
         {
             let buy_info = test_scenario::take_shared<gop::BuyInfo<gop::GOPNFT>>(&scenario);
             let nft_info = test_scenario::take_shared<gop::NFTInfo>(&scenario);
-            let nft_counter = test_scenario::take_shared<gop::NftCounter>(&scenario);
             let coin: coin::Coin<gop::GOPNFT> = coin::mint_for_testing<gop::GOPNFT>(10, test_scenario::ctx(&mut scenario));
             gop::buy_gop<gop::GOPNFT>(
                 &mut buy_info, 
                 coin,
                 &mut nft_info,
-                &mut nft_counter,
                 url,
                 test_scenario::ctx(&mut scenario)
             );
 
             test_scenario::return_shared(nft_info);
-            test_scenario::return_shared(nft_counter);
             test_scenario::return_shared(buy_info);
         };
 
@@ -313,12 +310,10 @@ module collection::gop_tests {
 
             let admin_cap = test_scenario::take_from_sender<gop::AdminCap>(&scenario);
             let nft_info = test_scenario::take_shared<gop::NFTInfo>(&scenario);
-            let nft_counter = test_scenario::take_shared<gop::NftCounter>(&scenario);
 
             gop::mint_nft_batch(
                 &admin_cap, 
                 &mut nft_info,
-                &mut nft_counter,
                 &url, 
                 final_owner, 
                 test_scenario::ctx(&mut scenario)
@@ -326,7 +321,6 @@ module collection::gop_tests {
 
             test_utils::destroy<gop::AdminCap>(admin_cap);
             test_scenario::return_shared<gop::NFTInfo>(nft_info);
-            test_scenario::return_shared<gop::NftCounter>(nft_counter);
         };
 
         test_scenario::next_tx(&mut scenario,final_owner);
@@ -367,12 +361,10 @@ module collection::gop_tests {
 
             let admin_cap = test_scenario::take_from_sender<gop::AdminCap>(&scenario);
             let nft_info = test_scenario::take_shared<gop::NFTInfo>(&scenario);
-            let nft_counter = test_scenario::take_shared<gop::NftCounter>(&scenario);
 
             gop::mint_nft_batch(
                 &admin_cap, 
                 &mut nft_info,
-                &mut nft_counter,
                 &url, 
                 initial_owner, 
                 test_scenario::ctx(&mut scenario)
@@ -380,7 +372,6 @@ module collection::gop_tests {
 
             test_utils::destroy<gop::AdminCap>(admin_cap);
             test_scenario::return_shared<gop::NFTInfo>(nft_info);
-            test_scenario::return_shared<gop::NftCounter>(nft_counter);
         };
 
         test_scenario::next_tx(&mut scenario, initial_owner);
@@ -434,12 +425,10 @@ module collection::gop_tests {
 
             let admin_cap = test_scenario::take_from_sender<gop::AdminCap>(&scenario);
             let nft_info = test_scenario::take_shared<gop::NFTInfo>(&scenario);
-            let nft_counter = test_scenario::take_shared<gop::NftCounter>(&scenario);
 
             gop::mint_nft_batch(
                 &admin_cap, 
                 &mut nft_info,
-                &mut nft_counter,
                 &url, 
                 initial_owner, 
                 test_scenario::ctx(&mut scenario)
@@ -447,7 +436,6 @@ module collection::gop_tests {
 
             test_utils::destroy<gop::AdminCap>(admin_cap);
             test_scenario::return_shared<gop::NFTInfo>(nft_info);
-            test_scenario::return_shared<gop::NftCounter>(nft_counter);
         };
 
         test_scenario::next_tx(&mut scenario, initial_owner);
@@ -492,12 +480,10 @@ module collection::gop_tests {
 
             let admin_cap = test_scenario::take_from_sender<gop::AdminCap>(&scenario);
             let nft_info = test_scenario::take_shared<gop::NFTInfo>(&scenario);
-            let nft_counter = test_scenario::take_shared<gop::NftCounter>(&scenario);
 
             gop::mint_nft_batch(
                 &admin_cap, 
                 &mut nft_info,
-                &mut nft_counter,
                 &url, 
                 final_owner, 
                 test_scenario::ctx(&mut scenario)
@@ -505,7 +491,6 @@ module collection::gop_tests {
 
             test_scenario::return_to_sender<gop::AdminCap>(&scenario, admin_cap);
             test_scenario::return_shared<gop::NFTInfo>(nft_info);
-            test_scenario::return_shared<gop::NftCounter>(nft_counter);
         };
 
         let nft_id;
@@ -591,12 +576,10 @@ module collection::gop_tests {
 
             let admin_cap = test_scenario::take_from_sender<gop::AdminCap>(&scenario);
             let nft_info = test_scenario::take_shared<gop::NFTInfo>(&scenario);
-            let nft_counter = test_scenario::take_shared<gop::NftCounter>(&scenario);
 
             gop::mint_nft_batch(
                 &admin_cap, 
                 &mut nft_info,
-                &mut nft_counter,
                 &url, 
                 final_owner, 
                 test_scenario::ctx(&mut scenario)
@@ -604,7 +587,6 @@ module collection::gop_tests {
 
             test_utils::destroy<gop::AdminCap>(admin_cap);
             test_scenario::return_shared<gop::NFTInfo>(nft_info);
-            test_scenario::return_shared<gop::NftCounter>(nft_counter);
         };
 
         test_scenario::next_tx(&mut scenario, initial_owner);
@@ -638,12 +620,10 @@ module collection::gop_tests {
 
             let admin_cap = test_scenario::take_from_sender<gop::AdminCap>(&scenario);
             let nft_info = test_scenario::take_shared<gop::NFTInfo>(&scenario);
-            let nft_counter = test_scenario::take_shared<gop::NftCounter>(&scenario);
 
             gop::mint_nft_batch(
                 &admin_cap, 
                 &mut nft_info,
-                &mut nft_counter,
                 &url, 
                 final_owner, 
                 test_scenario::ctx(&mut scenario)
@@ -653,7 +633,6 @@ module collection::gop_tests {
 
             test_utils::destroy<gop::AdminCap>(admin_cap);
             test_scenario::return_shared<gop::NFTInfo>(nft_info);
-            test_scenario::return_shared<gop::NftCounter>(nft_counter);
             
         };
 
@@ -698,19 +677,16 @@ module collection::gop_tests {
         {
             let buy_info = test_scenario::take_shared<gop::BuyInfo<gop::GOPNFT>>(&scenario);
             let nft_info = test_scenario::take_shared<gop::NFTInfo>(&scenario);
-            let nft_counter = test_scenario::take_shared<gop::NftCounter>(&scenario);
             let coin: coin::Coin<gop::GOPNFT> = coin::mint_for_testing<gop::GOPNFT>(11, test_scenario::ctx(&mut scenario));
             gop::buy_gop<gop::GOPNFT>(
                 &mut buy_info, 
                 coin,
                 &mut nft_info,
-                &mut nft_counter,
                 url,
                 test_scenario::ctx(&mut scenario)
             );
 
             test_scenario::return_shared(nft_info);
-            test_scenario::return_shared(nft_counter);
             test_scenario::return_shared(buy_info);
         };
 
