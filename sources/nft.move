@@ -80,6 +80,11 @@ module collection::nft {
         object::id(nft)
     }
 
+    /// Get the NFT's `ID`
+    public fun fraction_id(nft: &ArtfiNFT): u64 {
+        nft.fraction_id
+    }
+
     /// Get Royalty of the NFT
     public fun royalty(nft: &ArtfiNFT, nft_info: &NFTInfo): Royalty {
         *(vec_map::get(&nft_info.royalty_nft, &object::id(nft)))
