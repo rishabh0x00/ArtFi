@@ -84,6 +84,13 @@ module collection::base_nft {
         })
     }
 
+    public fun emit_update_attributes<T: copy + drop, U: copy + drop>(id: T, value: U) {
+        event::emit(AttributesUpdated{
+            key: id,
+            value: value
+        })
+    }
+
     /// Transfer `nft` to `recipient`
     public entry fun transfer_object<T: key + store>(
         nft: T, recipient: address, _: &mut TxContext
