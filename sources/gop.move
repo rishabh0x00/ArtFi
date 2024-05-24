@@ -38,17 +38,13 @@ module collection::gop {
         id: UID,
         name: String,
         user_detials: vec_map::VecMap<ID, Attributes>,
+        count: vec_map::VecMap<address,u64>,
     }
 
     struct Attributes has store, copy, drop {
         claimed: bool,
         airdrop: bool,
         ieo: bool
-    }
-
-    struct NftCounter has key, store {
-        id: UID,
-        count: vec_map::VecMap<address,u64>,
     }
 
     struct BuyInfo<phantom CointType> has key {
@@ -98,12 +94,8 @@ module collection::gop {
         transfer::share_object(NFTInfo {
             id: object::new(ctx),
             name: string::utf8(b"Artfi"),
-            user_detials: vec_map::empty<ID, Attributes>(),  
-        });
-
-        transfer::share_object(NftCounter{
-            id: object::new(ctx),
-            count: vec_map::empty<address, u64>()
+            user_detials: vec_map::empty<ID, Attributes>(),
+            count: vec_map::empty<address, u64>()  
         });
 
         transfer::transfer(AdminCap {
@@ -128,33 +120,33 @@ module collection::gop {
         object::id(nft)
     }
 
-    /// Get Attributes of NFT's
+    /// Get Attributes of the NFT
     public fun attributes(nft: &GOPNFT, nft_info: &NFTInfo): Attributes{
         *(vec_map::get(&nft_info.user_detials, &object::id(nft)))
     }
 
-    /// Get claimed Attributes of NFT's
+    /// Get claimed Attributes of the NFT
     public fun claimed(nft: &GOPNFT, nft_info: &NFTInfo): bool {
         vec_map::get(&nft_info.user_detials, &object::id(nft)).claimed
     }
 
-    /// Get airdrop Attributes of NFT's
+    /// Get airdrop Attributes of the NFT
     public fun airdrop(nft: &GOPNFT, nft_info: &NFTInfo): bool {
         vec_map::get(&nft_info.user_detials, &object::id(nft)).airdrop
     }
 
-    /// Get ieo contract Attributes of NFT's
+    /// Get ieo contract Attributes of the NFT
     public fun ieo(nft: &GOPNFT, nft_info: &NFTInfo): bool {
         vec_map::get(&nft_info.user_detials, &object::id(nft)).ieo
     }
 
-    /// Get ieo contract Attributes of NFT's
+    /// Get ieo contract Attributes of the NFT
     public fun balance_of_buy_info<CoinType>(buy_info: &BuyInfo<CoinType>): u64 {
         balance::value(&buy_info.balance)
     }
 
-    /// Get ieo contract Attributes of NFT's
-    public fun nft_mint_count(mint_counter: &NftCounter, user: address): u64 {
+    /// Get ieo contract Attributes of the NFT
+    public fun nft_mint_count(mint_counter: &NFTInfo, user: address): u64 {
         *vec_map::get(&mint_counter.count, &user)
     }
 
@@ -164,7 +156,6 @@ module collection::gop {
         buy_info: &mut BuyInfo<CoinType>, 
         coin: coin::Coin<CoinType>,
         nft_info: &mut NFTInfo,
-        mint_counter: &mut NftCounter,
         url: vector<u8>,
         ctx: &mut TxContext
     ) { 
@@ -177,7 +168,6 @@ module collection::gop {
         while (index < no_of_nft_mint) {
             mint_nft(
                 nft_info,
-                mint_counter,
                 tx_context::sender(ctx),
                 url,
                 ctx
@@ -214,12 +204,11 @@ module collection::gop {
     public fun mint_nft_batch(
         _: &AdminCap,
         nft_info: &mut NFTInfo,
-        mint_counter: &mut NftCounter,
         uris: &vector<vector<u8>>,
         user: address,
         ctx: &mut TxContext
     ) {
-        check_mint_limit(mint_counter, user);
+        check_mint_limit(nft_info, user);
         let lengthOfVector = vector::length(uris);
         let ids: vector<ID> = vector[];
         let index = 0;
@@ -239,7 +228,7 @@ module collection::gop {
         base_nft::emit_batch_mint_nft(ids, lengthOfVector, tx_context::sender(ctx), nft_info.name);
     }
 
-    /// Update the metadata of `NFT`
+    /// Update the metadata  of the NFT's
     public fun update_metadata(
         _: &AdminCap,
         display_object: &mut display::Display<GOPNFT>,
@@ -312,11 +301,11 @@ module collection::gop {
     // === Private Functions ===
 
     fun check_mint_limit(
-        mint_counter: &mut NftCounter,
+        mint_counter: &mut NFTInfo,
         user: address
     ) {
         if (vec_map::contains(&mint_counter.count, &user)) {
-            assert!(*(vec_map::get(&mint_counter.count, &user)) <= 50,ELimitExceed);
+            assert!(*(vec_map::get(&mint_counter.count, &user)) < 50,ELimitExceed);
             let counter = vec_map::get_mut(&mut mint_counter.count, &user);
             *counter = *counter + 1;
         } else {
@@ -351,12 +340,11 @@ module collection::gop {
     /// Create a new GOP
     fun mint_nft(
         nft_info: &mut NFTInfo,
-        mint_counter: &mut NftCounter,
         user: address,
         url: vector<u8>,
         ctx: &mut TxContext
     ) { 
-        check_mint_limit(mint_counter, user);
+        check_mint_limit(nft_info, user);
 
         let id: ID = mint_func(
             nft_info,
@@ -403,7 +391,7 @@ module collection::gop {
     #[test_only]
     public fun new_nft_info(name: String): NFTInfo {
         NFTInfo {
-            id: object::new(&mut tx_context::dummy()), name, user_detials: vec_map::empty<ID, Attributes>()
+            id: object::new(&mut tx_context::dummy()), name, user_detials: vec_map::empty<ID, Attributes>(), count: vec_map::empty<address, u64>()
         }
     }
 
