@@ -16,6 +16,11 @@ module collection::gap {
 
     use collection::base_nft;
 
+    // ===== Error code ===== 
+
+    const ELimitExceed: u64 = 1;
+    const ELengthNotEqual: u64 = 1;
+
     // === Structs ===
 
     struct GAPNFT has key, store {
@@ -30,6 +35,7 @@ module collection::gap {
         id: UID,
         name: String,
         user_detials: vec_map::VecMap<ID, Attributes>,
+        count: vec_map::VecMap<address,u64>,
     }
 
     struct Attributes has store, copy, drop {
@@ -77,6 +83,7 @@ module collection::gap {
             id: object::new(ctx),
             name: string::utf8(b"Artfi"),
             user_detials: vec_map::empty<ID, Attributes>(),  
+            count: vec_map::empty<address, u64>()
         });
 
         transfer::transfer(AdminCap {
@@ -101,12 +108,12 @@ module collection::gap {
         object::id(nft)
     }
 
-    /// Get Attributes of NFT's
+    /// Get Attributes of the NFT
     public fun attributes(nft: &GAPNFT, nft_info: &NFTInfo): Attributes{
         *(vec_map::get(&nft_info.user_detials, &object::id(nft)))
     }
 
-    /// Get ieo attributes of NFT's
+    /// Get ieo attributes of the NFT
     public fun ieo(nft: &GAPNFT, nft_info: &NFTInfo): bool {
         vec_map::get(&nft_info.user_detials, &object::id(nft)).ieo
     }
@@ -132,6 +139,7 @@ module collection::gap {
         url: vector<u8>,
         ctx: &mut TxContext
     ) { 
+        check_mint_limit(nft_info, user);
         let id: ID = mint_func(
             nft_info,
             url,
@@ -147,18 +155,20 @@ module collection::gap {
         _: &AdminCap,
         nft_info: &mut NFTInfo,
         uris: &vector<vector<u8>>,
-        user: address,
+        user: &vector<address>,
         ctx: &mut TxContext
     ) {
         let lengthOfVector = vector::length(uris);
+        assert!(lengthOfVector == vector::length(user), ELengthNotEqual);
         let ids: vector<ID> = vector[];
         let index = 0;
 
         while (index < lengthOfVector) {
+            check_mint_limit(nft_info, *vector::borrow(user, index));
             let id: ID = mint_func(
                 nft_info,
                 *vector::borrow(uris, index),
-                user,
+                *vector::borrow(user, index),
                 ctx
             );
 
@@ -169,7 +179,7 @@ module collection::gap {
         base_nft::emit_batch_mint_nft(ids, lengthOfVector, tx_context::sender(ctx), nft_info.name);
     }
 
-    /// Update the metadata of `NFT`
+    /// Update the metadata of the NFT's
     public fun update_metadata(
         _: &AdminCap,
         display_object: &mut display::Display<GAPNFT>,
@@ -204,6 +214,19 @@ module collection::gap {
     }
 
     // === Private Functions ===
+
+    fun check_mint_limit(
+        mint_counter: &mut NFTInfo,
+        user: address
+    ) {
+        if (vec_map::contains(&mint_counter.count, &user)) {
+            assert!(*(vec_map::get(&mint_counter.count, &user)) < 1,ELimitExceed);
+            let counter = vec_map::get_mut(&mut mint_counter.count, &user);
+            *counter = *counter + 1;
+        } else {
+            vec_map::insert(&mut mint_counter.count, user, 1);
+        };
+    } 
     
     fun mint_func(
         nft_info: &mut NFTInfo,
@@ -260,7 +283,7 @@ module collection::gap {
     #[test_only]
     public fun new_nft_info(name: String): NFTInfo {
         NFTInfo {
-            id: object::new(&mut tx_context::dummy()), name, user_detials: vec_map::empty<ID, Attributes>()
+            id: object::new(&mut tx_context::dummy()), name, user_detials: vec_map::empty<ID, Attributes>(), count: vec_map::empty<address, u64>()
         }
     }
 
