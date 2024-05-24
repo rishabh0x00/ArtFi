@@ -4,7 +4,6 @@ module collection::trophy {
     // === Imports ===
 
     use std::string::{Self, String};
-    use std::vector;
 
     use sui::display;
     use sui::object::{Self, ID, UID};
@@ -18,7 +17,7 @@ module collection::trophy {
 
     // ===== Error code ===== 
 
-    const ELimitExceed: u64 = 1;
+    const EAlreadyExist: u64 = 1;
 
     // === Structs ===
 
@@ -33,16 +32,13 @@ module collection::trophy {
     struct NFTInfo has key, store {
         id: UID,
         name: String,
-        user_detials: vec_map::VecMap<ID, Attributes>,
+        id_detials: vec_map::VecMap<ID, Attributes>,
+        fraction_exist: vec_map::VecMap<u64,ID>,
     }
 
     struct Attributes has store, copy, drop {
+        fraction_id: u64,
         shipment_status: String
-    }
-
-    struct NftCounter has key, store {
-        id: UID,
-        count: vec_map::VecMap<address,u64>,
     }
 
     struct AdminCap has key {
@@ -85,12 +81,8 @@ module collection::trophy {
         transfer::share_object(NFTInfo {
             id: object::new(ctx),
             name: string::utf8(b"Artfi"),
-            user_detials: vec_map::empty<ID, Attributes>(),  
-        });
-
-        transfer::share_object(NftCounter{
-            id: object::new(ctx),
-            count: vec_map::empty<address, u64>()
+            id_detials: vec_map::empty<ID, Attributes>(), 
+            fraction_exist: vec_map::empty<u64, ID>() 
         });
 
         transfer::transfer(AdminCap {
@@ -115,14 +107,14 @@ module collection::trophy {
         object::id(nft)
     }
 
-    /// Get Attributes of NFT's
+    /// Get Attributes of the NFT
     public fun attributes(nft: &TrophyNFT, nft_info: &NFTInfo): Attributes{
-        *(vec_map::get(&nft_info.user_detials, &object::id(nft)))
+        *(vec_map::get(&nft_info.id_detials, &object::id(nft)))
     }
 
-    /// Get shipment status of NFT's
+    /// Get shipment status of the NFT
     public fun shipment_status(nft: &TrophyNFT, nft_info: &NFTInfo): String {
-        vec_map::get(&nft_info.user_detials, &object::id(nft)).shipment_status
+        vec_map::get(&nft_info.id_detials, &object::id(nft)).shipment_status
     }
 
     // === Public-Mutative Functions ===
@@ -130,17 +122,18 @@ module collection::trophy {
     /// Create a new Trophy
     public entry fun mint_nft(
         nft_info: &mut NFTInfo,
-        mint_counter: &mut NftCounter,
         user: address,
+        fraction_id: u64,
         url: vector<u8>,
         ctx: &mut TxContext
     ) { 
-        check_mint_limit(mint_counter, user);
+        assert!(check_fraction_exist(nft_info, fraction_id) == false, EAlreadyExist);
 
         let id: ID = mint_func(
             nft_info,
             url,
             user,
+            fraction_id,
             ctx
         );
 
@@ -150,44 +143,15 @@ module collection::trophy {
     /// Permanently delete `NFT`
     public entry fun burn(nft: TrophyNFT, nft_info: &mut NFTInfo, _: &mut TxContext) {
         let _id = object::id(&nft);
-        let (_burn_id, _burn_attributes) = vec_map::remove(&mut nft_info.user_detials, &_id);
+        let (_burn_id, _burn_attributes) = vec_map::remove(&mut nft_info.id_detials, &_id);
         
         let TrophyNFT { id, name: _, url: _ } = nft;
         object::delete(id);
     }
 
     // === AdminCap Functions ===
-    
-    /// Create a multiple Trophy
-    public fun mint_nft_batch(
-        _: &AdminCap,
-        nft_info: &mut NFTInfo,
-        mint_counter: &mut NftCounter,
-        uris: &vector<vector<u8>>,
-        user: &vector<address>,
-        ctx: &mut TxContext
-    ) {
-        let lengthOfVector = vector::length(uris);
-        let ids: vector<ID> = vector[];
-        let index = 0;
 
-        while (index < lengthOfVector) {
-            check_mint_limit(mint_counter, *vector::borrow(user, index));
-            let id: ID = mint_func(
-                nft_info,
-                *vector::borrow(uris, index),
-                *vector::borrow(user, index),
-                ctx
-            );
-
-            index = index + 1;
-            vector::push_back(&mut ids, id);
-        };
-
-        base_nft::emit_batch_mint_nft(ids, lengthOfVector, tx_context::sender(ctx), nft_info.name);
-    }
-
-    /// Update the metadata of `NFT`
+    /// Update the metadata of the NFT's
     public fun update_metadata(
         _: &AdminCap,
         display_object: &mut display::Display<TrophyNFT>,
@@ -209,11 +173,12 @@ module collection::trophy {
         _: &AdminCap,
         nft_info: &mut NFTInfo,
         id: ID,
-        shipment_status: String,
-    ) {
-        base_nft::update_attribute(&mut nft_info.user_detials, id, Attributes{
-            shipment_status: shipment_status,
-        });
+        new_shipment_status: String,
+    ) { 
+        let value = vec_map::get_mut(&mut nft_info.id_detials, &id);
+        value.shipment_status = new_shipment_status;
+
+        base_nft::emit_update_attributes(id, *value);
     }
 
     /// transfer AdminCap to new_owner
@@ -223,23 +188,18 @@ module collection::trophy {
 
     // === Private Functions ===
 
-    fun check_mint_limit(
-        mint_counter: &mut NftCounter,
-        user: address
-    ) {
-        if (vec_map::contains(&mint_counter.count, &user)) {
-            assert!(*(vec_map::get(&mint_counter.count, &user)) <= 1,ELimitExceed);
-            let counter = vec_map::get_mut(&mut mint_counter.count, &user);
-            *counter = *counter + 1;
-        } else {
-            vec_map::insert(&mut mint_counter.count, user, 1);
-        };
+    fun check_fraction_exist(
+        mint_counter: &NFTInfo,
+        fraction_id: u64,
+    ): bool {
+        vec_map::contains(&mint_counter.fraction_exist, &fraction_id)
     } 
     
     fun mint_func(
         nft_info: &mut NFTInfo,
         url: vector<u8>,
         user: address,
+        fraction_id: u64,
         ctx: &mut TxContext
      ) : ID {
         let nft = TrophyNFT{
@@ -250,7 +210,8 @@ module collection::trophy {
 
         let _id = object::id(&nft);
 
-        vec_map::insert(&mut nft_info.user_detials, _id, Attributes{
+        vec_map::insert(&mut nft_info.id_detials, _id, Attributes{
+            fraction_id,
             shipment_status: string::utf8(b"")
         });
 
@@ -265,6 +226,7 @@ module collection::trophy {
         name: String,
         url: Url,
         nft_info: &mut NFTInfo,
+        fraction_id: u64,
         ctx: &mut TxContext
     ): TrophyNFT {
         let nft = TrophyNFT {
@@ -274,7 +236,8 @@ module collection::trophy {
         };
 
         let _id = object::id(&nft);
-        vec_map::insert(&mut nft_info.user_detials, _id, Attributes{
+        vec_map::insert(&mut nft_info.id_detials, _id, Attributes{
+            fraction_id,
             shipment_status: string::utf8(b""), 
         });
 
@@ -282,8 +245,9 @@ module collection::trophy {
     }
 
     #[test_only]
-    public fun new_attributes(shipment_status: String): Attributes {
+    public fun new_attributes(fraction_id: u64, shipment_status: String): Attributes {
         Attributes {
+            fraction_id,
             shipment_status
         }
     }
@@ -291,7 +255,7 @@ module collection::trophy {
     #[test_only]
     public fun new_nft_info(name: String): NFTInfo {
         NFTInfo {
-            id: object::new(&mut tx_context::dummy()), name, user_detials: vec_map::empty<ID, Attributes>()
+            id: object::new(&mut tx_context::dummy()), name, id_detials: vec_map::empty<ID, Attributes>(), fraction_exist: vec_map::empty<u64,ID>(),
         }
     }
 
