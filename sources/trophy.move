@@ -227,6 +227,8 @@ module collection::trophy {
             shipment_status: string::utf8(b"")
         });
 
+        vec_map::insert(&mut nft_info.fraction_exist, fraction_id, _id);
+
         transfer::public_transfer(nft, user);
         _id
     }
