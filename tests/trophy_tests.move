@@ -16,7 +16,6 @@ module collection::trophy_tests {
     #[test_only] use sui::test_utils;
     #[test_only] use sui::test_scenario;
     #[test_only] use sui::display;
-    #[test_only] use sui::coin;
 
     #[test]
     // test `name` function
