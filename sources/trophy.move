@@ -14,6 +14,7 @@ module collection::trophy {
     use sui::url::{Self, Url};
 
     use collection::base_nft;
+    use collection::nft;
 
     // ===== Error code ===== 
 
@@ -117,17 +118,23 @@ module collection::trophy {
         vec_map::get(&nft_info.id_detials, &object::id(nft)).shipment_status
     }
 
+    /// Get shipment status of the NFT
+    public fun fraction_id(nft: &TrophyNFT, nft_info: &NFTInfo): u64 {
+        vec_map::get(&nft_info.id_detials, &object::id(nft)).fraction_id
+    }
+
     // === Public-Mutative Functions ===
 
     /// Create a new Trophy
     public entry fun mint_nft(
         nft_info: &mut NFTInfo,
         user: address,
-        fraction_id: u64,
+        nft_object: &nft::ArtfiNFT,
         url: vector<u8>,
         ctx: &mut TxContext
     ) { 
-        assert!(check_fraction_exist(nft_info, fraction_id) == false, EAlreadyExist);
+        let fraction_id = nft::fraction_id(nft_object);
+        assert!(check_fraction_exist(nft_info,  fraction_id) == false, EAlreadyExist);
 
         let id: ID = mint_func(
             nft_info,
