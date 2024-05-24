@@ -118,6 +118,11 @@ module collection::gap {
         vec_map::get(&nft_info.user_detials, &object::id(nft)).ieo
     }
 
+    /// Get mint count of user
+    public fun count(nft_info: &NFTInfo, user: address): u64 {
+        *vec_map::get(&nft_info.count, &user)
+    }
+
     // === Public-Mutative Functions ===
 
     /// Permanently delete `NFT`
