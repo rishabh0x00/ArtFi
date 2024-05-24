@@ -80,22 +80,22 @@ module collection::nft {
         object::id(nft)
     }
 
-    /// Get Royalty of NFT's
+    /// Get Royalty of the NFT
     public fun royalty(nft: &ArtfiNFT, nft_info: &NFTInfo): Royalty {
         *(vec_map::get(&nft_info.royalty_nft, &object::id(nft)))
     }
 
-    /// Get artfi Royalty of NFT's
+    /// Get artfi Royalty of the NFT
     public fun artfi_royalty(nft: &ArtfiNFT, nft_info: &NFTInfo): u64 {
         vec_map::get(&nft_info.royalty_nft, &object::id(nft)).artfi
     }
 
-    /// Get artist Royalty of NFT's
+    /// Get artist Royalty of the NFT
     public fun artist_royalty(nft: &ArtfiNFT, nft_info: &NFTInfo): u64 {
         vec_map::get(&nft_info.royalty_nft, &object::id(nft)).artist
     }
 
-    /// Get staking contract Royalty of NFT's
+    /// Get staking contract Royalty of the NFT
     public fun staking_contract_royalty(nft: &ArtfiNFT, nft_info: &NFTInfo): u64 {
         vec_map::get(&nft_info.royalty_nft, &object::id(nft)).staking_contract
     }
@@ -200,7 +200,7 @@ module collection::nft {
         });
     }
 
-    /// Update the metadata of `NFT`
+    /// Update the metadata of the NFT's
     public fun update_metadata(
         _: &AdminCap,
         display_object: &mut display::Display<ArtfiNFT>,
