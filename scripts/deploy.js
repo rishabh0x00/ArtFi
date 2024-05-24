@@ -61,46 +61,58 @@ if (published_event?.type != "published") {
     process.exit(1)
 }
 
-const find_one_by_type = (changes, type) => {
-    const object_change = changes.find(change => change.type == "created" && change.objectType == type)
-    if (object_change?.type == "created") {
-        return object_change.objectId
+const find_one_by_type = (changes, types) => {
+    const object_change = types.find(type => changes.objectType == type)
+    if ((object_change && changes.objectType == object_change) && changes.type == 'created') {
+        return [changes.objectId, object_change]
     }
 }
 
 const check_find_one_by_type = (changes, type) => {
     let place_id = [];
-    for(let i = 0; i < type.length; i++) {
-        let place_id_return = find_one_by_type(changes, type[i]);
-        if (!place_id_return) {
-            console.log("Error: Could not find place creation in results of publish")
-            process.exit(1)
+    let object_type = [];
+    for(let i = 0; i < changes.length; i++) {
+        let returns_object = find_one_by_type(changes[i], type);
+        if (returns_object) {
+            place_id.push(returns_object[0]);
+            object_type.push(returns_object[1]);
         }
-        place_id.push(place_id_return);
     }
-    return place_id;
+    return [place_id, object_type];
 }
 
 const package_id = published_event.packageId;
-const place_type = [`${package_id}::nft::RoyaltyInfo`, 
-                    `${package_id}::nft::AdminCap`, 
-                    `${package_id}::nft::MinterCap`, 
-                    `0x2::display::Display<${package_id}::nft::ArtFiNFT>`, 
-                    `0x2::package::Publisher`, `0x2::package::UpgradeCap`
-                ]
+const place_type = [
+                `${package_id}::base_nft::AdminCap`,  
+                `${package_id}::nft::AdminCap`, 
+                `${package_id}::gop::AdminCap`, 
+                `${package_id}::gap::AdminCap`, 
+                `${package_id}::trophy::AdminCap`, 
+                `${package_id}::nft::MinterCap`,
+                `${package_id}::nft::NFTInfo`, 
+                `${package_id}::gop::NFTInfo`,  
+                `${package_id}::gap::NFTInfo`, 
+                `${package_id}::trophy::NFTInfo`, 
+                `0x2::display::Display<${package_id}::nft::ArtfiNFT>`, 
+                `0x2::display::Display<${package_id}::gop::GOPNFT>`,
+                `0x2::display::Display<${package_id}::gap::GAPNFT>`,
+                `0x2::display::Display<${package_id}::trophy::TrophyNFT>`,
+                `0x2::package::Publisher`, `0x2::package::UpgradeCap`
+            ]
 
 
-const place_id = check_find_one_by_type(objectChanges, place_type);
+const objects_id_types = check_find_one_by_type(objectChanges, place_type);
 
+let placy_type = objects_id_types[1];
+let place_id = objects_id_types[0];
 
 let deployed_addresses = {
     types: {
-        place_type
+        placy_type
     },
     PACKAGE_ID: package_id,
     types_id: place_id
 }
-
 
 console.log("Writing addresses to json...")
 const path_to_address_file = path.join(dirname(fileURLToPath(import.meta.url)), "./deployed_addresses.json")
