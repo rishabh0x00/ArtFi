@@ -75,12 +75,12 @@ module collection::nft {
         &nft.url
     }
 
-    /// Get the NFT's `ID`
+    /// Get ID of the NFT
     public fun id(nft: &ArtfiNFT): ID {
         object::id(nft)
     }
 
-    /// Get the NFT's `ID`
+    /// Get fraction ID of the NFT
     public fun fraction_id(nft: &ArtfiNFT): u64 {
         nft.fraction_id
     }

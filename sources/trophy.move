@@ -103,7 +103,7 @@ module collection::trophy {
         &nft.url
     }
 
-    /// Get the NFT's `ID`
+    /// Get ID of the NFT
     public fun id(nft: &TrophyNFT): ID {
         object::id(nft)
     }

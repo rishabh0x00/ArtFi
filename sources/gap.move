@@ -102,7 +102,7 @@ module collection::gap {
         &nft.url
     }
 
-    /// Get the NFT's `ID`
+    /// Get ID of the NFT
     public fun id(nft: &GAPNFT): ID {
         object::id(nft)
     }

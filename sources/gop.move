@@ -115,7 +115,7 @@ module collection::gop {
         &nft.url
     }
 
-    /// Get the NFT's `ID`
+    /// Get ID of the NFT
     public fun id(nft: &GOPNFT): ID {
         object::id(nft)
     }
