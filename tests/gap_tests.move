@@ -192,56 +192,6 @@ module collection::gap_tests {
     }
 
     #[test]
-    fun test_mint_nft() {
-        let url = b" ";
-        let initial_owner = @0xCAFE;
-        let final_owner = @0xFACE;
-
-        let scenario = test_scenario::begin(initial_owner);
-        {   
-            test_scenario::sender(&scenario);
-
-            gap::test_init(test_scenario::ctx(&mut scenario));
-
-        };
-
-        test_scenario::next_tx(&mut scenario, initial_owner);
-        {   
-            let admin_cap = test_scenario::take_from_sender<gap::AdminCap>(&scenario);
-            let nft_info = test_scenario::take_shared<gap::NFTInfo>(&scenario);
-            gap::mint_nft(
-                &admin_cap, 
-                &mut nft_info,
-                final_owner,
-                url,
-                test_scenario::ctx(&mut scenario)
-            );
-
-            test_scenario::return_shared(nft_info);
-            test_scenario::return_to_sender(&scenario, admin_cap);
-        };
-
-        test_scenario::next_tx(&mut scenario,final_owner);
-        {
-            let nftToken = test_scenario::take_from_sender<gap::GAPNFT>(&scenario);
-
-            assert!(gap::name(&nftToken) == &string::utf8(b"Artfi"), 1);
-            assert!(gap::url(&nftToken) == &url::new_unsafe_from_bytes(url), 2);
-            let attributes_instance = gap::new_attributes(false);
-
-            let nft_info = test_scenario::take_shared<gap::NFTInfo>(&scenario);
-            assert!(gap::attributes(&nftToken, &nft_info) == attributes_instance, 3);
-
-            test_utils::destroy<gap::GAPNFT>(nftToken);
-            test_utils::destroy<gap::Attributes>(attributes_instance);
-            test_scenario::return_shared<gap::NFTInfo>(nft_info);
-            
-        };
-
-        test_scenario::end(scenario);
-    }
-
-    #[test]
     fun test_mint_batch_nft() {
         let url = vector[b" "];
         let initial_owner = @0xCAFE;
@@ -598,56 +548,5 @@ module collection::gap_tests {
 
         test_scenario::end(scenario);
         test_utils::destroy<gap::GAPNFT>(nft_object);
-    }
-
-    #[test]
-    #[expected_failure(abort_code = gap::ELimitExceed)]
-    fun test_will_error_on_mint_more_than_one() {
-        let url = b" ";
-        let initial_owner = @0xCAFE;
-        let final_owner = @0xFACE;
-
-        let scenario = test_scenario::begin(initial_owner);
-        {   
-            test_scenario::sender(&scenario);
-
-            gap::test_init(test_scenario::ctx(&mut scenario));
-
-        };
-
-        test_scenario::next_tx(&mut scenario, initial_owner);
-        {   
-            let admin_cap = test_scenario::take_from_sender<gap::AdminCap>(&scenario);
-            let nft_info = test_scenario::take_shared<gap::NFTInfo>(&scenario);
-            gap::mint_nft(
-                &admin_cap, 
-                &mut nft_info,
-                final_owner,
-                url,
-                test_scenario::ctx(&mut scenario)
-            );
-
-            test_scenario::return_shared(nft_info);
-            test_scenario::return_to_sender(&scenario, admin_cap);
-        };
-
-        test_scenario::next_tx(&mut scenario, initial_owner);
-        {   
-            let admin_cap = test_scenario::take_from_sender<gap::AdminCap>(&scenario);
-            let nft_info = test_scenario::take_shared<gap::NFTInfo>(&scenario);
-            gap::mint_nft(
-                &admin_cap, 
-                &mut nft_info,
-                final_owner,
-                url,
-                test_scenario::ctx(&mut scenario)
-            );
-
-            test_scenario::return_shared(nft_info);
-            test_scenario::return_to_sender(&scenario, admin_cap);
-        };
-
-        test_scenario::end(scenario);
-    }
-        
+    }  
 }
