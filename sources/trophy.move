@@ -154,9 +154,17 @@ module collection::trophy {
     public entry fun burn(nft: TrophyNFT, nft_info: &mut NFTInfo, _: &mut TxContext) {
         let _id = object::id(&nft);
         let (_burn_id, _burn_attributes) = vec_map::remove(&mut nft_info.id_detials, &_id);
-        
+        let (_burn_id, _burn_attributes) = vec_map::remove(&mut nft_info.fraction_exist, &_burn_attributes.fraction_id);
+
         let TrophyNFT { id, name: _, url: _ } = nft;
         object::delete(id);
+    }
+
+    /// Transfer `nft` to `recipient`
+    public entry fun transfer_nft(
+        nft: TrophyNFT, recipient: address, _: &mut TxContext
+    ) {
+        transfer::public_transfer(nft, recipient);
     }
 
     // === AdminCap Functions ===

@@ -166,6 +166,13 @@ module collection::nft {
         object::delete(id);
     }
 
+    /// Transfer `nft` to `recipient`
+    public entry fun transfer_nft(
+        nft: ArtfiNFT, recipient: address, _: &mut TxContext
+    ) {
+        transfer::public_transfer(nft, recipient);
+    }
+
     // === AdminCap Functions ===
 
     /// Update the defualt royalty

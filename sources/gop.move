@@ -191,12 +191,31 @@ module collection::gop {
     }
 
     /// Permanently delete `NFT`
-    public entry fun burn(nft: GOPNFT, nft_info: &mut NFTInfo, _: &mut TxContext) {
+    public entry fun burn(nft: GOPNFT, nft_info: &mut NFTInfo, ctx: &mut TxContext) {
         let _id = object::id(&nft);
         let (_burn_id, _burn_attributes) = vec_map::remove(&mut nft_info.user_detials, &_id);
-        
+        let counter = vec_map::get_mut(&mut nft_info.count, &tx_context::sender(ctx));
+        *counter = *counter - 1;
+
         let GOPNFT { id, name: _, url: _ } = nft;
         object::delete(id);
+    }
+
+    /// Transfer `nft` to `recipient`
+    public entry fun transfer_nft(
+        nft: GOPNFT, recipient: address, nft_info: &mut NFTInfo, ctx: &mut TxContext
+    ) {
+        let counter = vec_map::get_mut(&mut nft_info.count, &tx_context::sender(ctx));
+        *counter = *counter - 1;
+
+        if (vec_map::contains(&nft_info.count, &recipient)) {
+            let counter = vec_map::get_mut(&mut nft_info.count, &recipient);
+            *counter = *counter + 1;
+        } else {
+            vec_map::insert(&mut nft_info.count, recipient, 1);
+        };
+
+        transfer::public_transfer(nft, recipient);
     }
 
     // === AdminCap Functions ===
