@@ -185,7 +185,7 @@ module collection::gap_tests {
         {
             let publisher = test_scenario::take_from_sender<package::Publisher>(&scenario);
 
-            base_nft::transfer_object(publisher, final_owner, test_scenario::ctx(&mut scenario));
+            base_nft::transfer_publisher_object(publisher, final_owner, test_scenario::ctx(&mut scenario));
         };
 
         test_scenario::end(scenario);
@@ -278,12 +278,16 @@ module collection::gap_tests {
         {
 
             let nft_object = test_scenario::take_from_sender<gap::GAPNFT>(&scenario);
+            let nft_info = test_scenario::take_shared<gap::NFTInfo>(&scenario);
 
-            base_nft::transfer_object<gap::GAPNFT>(
+            gap::transfer_nft(
                 nft_object,
+                &mut nft_info,
                 final_owner, 
                 test_scenario::ctx(&mut scenario)
             );
+
+            test_scenario::return_shared(nft_info);
         };
 
         test_scenario::next_tx(&mut scenario,final_owner);
@@ -490,8 +494,17 @@ module collection::gap_tests {
 
         test_scenario::next_tx(&mut scenario, initial_owner);
         {
-            let nftToken = test_scenario::take_from_sender<gap::GAPNFT>(&scenario);
-            base_nft::transfer_object<gap::GAPNFT>(nftToken, final_owner, test_scenario::ctx(&mut scenario));
+            let nft_object = test_scenario::take_from_sender<gap::GAPNFT>(&scenario);
+            let nft_info = test_scenario::take_shared<gap::NFTInfo>(&scenario);
+
+            gap::transfer_nft(
+                nft_object,
+                &mut nft_info,
+                final_owner, 
+                test_scenario::ctx(&mut scenario)
+            );
+
+            test_scenario::return_shared(nft_info);
         };
 
         test_scenario::end(scenario);

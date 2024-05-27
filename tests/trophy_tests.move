@@ -209,7 +209,7 @@ module collection::trophy_tests {
         {
             let publisher = test_scenario::take_from_sender<package::Publisher>(&scenario);
 
-            base_nft::transfer_object(publisher, final_owner, test_scenario::ctx(&mut scenario));
+            base_nft::transfer_publisher_object(publisher, final_owner, test_scenario::ctx(&mut scenario));
         };
 
         test_scenario::end(scenario);
@@ -321,7 +321,7 @@ module collection::trophy_tests {
 
             let nft_object = test_scenario::take_from_sender<trophy::TrophyNFT>(&scenario);
 
-            base_nft::transfer_object<trophy::TrophyNFT>(
+            trophy::transfer_nft(
                 nft_object,
                 final_owner, 
                 test_scenario::ctx(&mut scenario)
@@ -556,7 +556,7 @@ module collection::trophy_tests {
         test_scenario::next_tx(&mut scenario, initial_owner);
         {
             let nftToken = test_scenario::take_from_sender<trophy::TrophyNFT>(&scenario);
-            base_nft::transfer_object<trophy::TrophyNFT>(nftToken, final_owner, test_scenario::ctx(&mut scenario));
+            trophy::transfer_nft(nftToken, final_owner, test_scenario::ctx(&mut scenario));
         };
 
         test_scenario::end(scenario);

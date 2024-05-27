@@ -222,7 +222,7 @@ module collection::gop_tests {
         {
             let publisher = test_scenario::take_from_sender<package::Publisher>(&scenario);
 
-            base_nft::transfer_object(publisher, final_owner, test_scenario::ctx(&mut scenario));
+            base_nft::transfer_publisher_object(publisher, final_owner, test_scenario::ctx(&mut scenario));
         };
 
         test_scenario::end(scenario);
@@ -377,12 +377,16 @@ module collection::gop_tests {
         {
 
             let nft_object = test_scenario::take_from_sender<gop::GOPNFT>(&scenario);
+            let nft_info = test_scenario::take_shared<gop::NFTInfo>(&scenario);
 
-            base_nft::transfer_object<gop::GOPNFT>(
+            gop::transfer_nft(
                 nft_object,
                 final_owner, 
+                &mut nft_info,
                 test_scenario::ctx(&mut scenario)
             );
+
+            test_scenario::return_shared<gop::NFTInfo>(nft_info);
         };
 
         test_scenario::next_tx(&mut scenario,final_owner);
@@ -730,7 +734,16 @@ module collection::gop_tests {
         test_scenario::next_tx(&mut scenario, initial_owner);
         {
             let nftToken = test_scenario::take_from_sender<gop::GOPNFT>(&scenario);
-            base_nft::transfer_object<gop::GOPNFT>(nftToken, final_owner, test_scenario::ctx(&mut scenario));
+            let nft_info = test_scenario::take_shared<gop::NFTInfo>(&scenario);
+
+            gop::transfer_nft(
+                nftToken,
+                final_owner, 
+                &mut nft_info,
+                test_scenario::ctx(&mut scenario)
+            );
+
+            test_scenario::return_shared<gop::NFTInfo>(nft_info);
         };
 
         test_scenario::end(scenario);

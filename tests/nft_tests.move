@@ -287,7 +287,7 @@ module collection::nft_tests {
         {
             let publisher = test_scenario::take_from_sender<package::Publisher>(&scenario);
 
-            base_nft::transfer_object(publisher, final_owner, test_scenario::ctx(&mut scenario));
+            base_nft::transfer_publisher_object(publisher, final_owner, test_scenario::ctx(&mut scenario));
         };
 
         test_scenario::end(scenario);
@@ -444,7 +444,7 @@ module collection::nft_tests {
         {
             let nftToken = test_scenario::take_from_sender<nft::ArtfiNFT>(&scenario);
 
-            base_nft::transfer_object<nft::ArtfiNFT>(nftToken, user, test_scenario::ctx(&mut scenario));
+            nft::transfer_nft(nftToken, user, test_scenario::ctx(&mut scenario));
             
         };
 
@@ -742,7 +742,7 @@ module collection::nft_tests {
         {
             let nftToken = test_scenario::take_from_sender<nft::ArtfiNFT>(&scenario);
 
-            base_nft::transfer_object<nft::ArtfiNFT>(nftToken, user, test_scenario::ctx(&mut scenario));
+            nft::transfer_nft(nftToken, user, test_scenario::ctx(&mut scenario));
             
         };
 
