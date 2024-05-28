@@ -8,6 +8,8 @@ module collection::base_nft {
     use sui::transfer;
     use sui::tx_context::{Self, TxContext};
     use sui::vec_map;
+    use sui::display;
+    use sui::package;
 
     // === Structs ===
 
@@ -84,11 +86,32 @@ module collection::base_nft {
         })
     }
 
-    /// Transfer `nft` to `recipient`
-    public entry fun transfer_object<T: key + store>(
-        nft: T, recipient: address, _: &mut TxContext
+    public fun emit_update_attributes<T: copy + drop, U: copy + drop>(id: T, value: U) {
+        event::emit(AttributesUpdated{
+            key: id,
+            value: value
+        })
+    }
+
+    /// Transfer `publisher` to `recipient`
+    public entry fun transfer_publisher_object(
+        publisher_object: package::Publisher, recipient: address, _: &mut TxContext
     ) {
-        transfer::public_transfer(nft, recipient);
+        transfer::public_transfer(publisher_object, recipient);
+    }
+
+    /// Transfer `display` to `recipient`
+    public entry fun transfer_display_object<T: key + store>(
+        display_object: display::Display<T>, recipient: address, _: &mut TxContext
+    ) {
+        transfer::public_transfer(display_object, recipient);
+    }
+
+        /// Transfer `upgrade cap` to `recipient`
+    public entry fun transfer_upgrade_object(
+        upgrade_cap: package::UpgradeCap, recipient: address, _: &mut TxContext
+    ) {
+        transfer::public_transfer(upgrade_cap, recipient);
     }
 
     public fun update_attribute<T: copy + drop, U: copy + drop>(vector_map: &mut vec_map::VecMap<T, U>, id: T, value: U) {

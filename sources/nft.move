@@ -27,8 +27,6 @@ module collection::nft {
         fraction_id: u64,
         /// Name for the token
         name: String,
-        /// Description of the token
-        description: String,
         /// URL for the token
         url: Url
     }
@@ -42,7 +40,6 @@ module collection::nft {
     struct NFTInfo has key, store {
         id: UID,
         name: String,
-        description: String,
         royalty_nft: vec_map::VecMap<ID, Royalty>,
         default_royalty: Royalty
     }
@@ -73,37 +70,37 @@ module collection::nft {
         &nft.name
     }
 
-    /// Get the NFT's `description`
-    public fun description(nft: &ArtfiNFT): &String {
-        &nft.description
-    }
-
     /// Get the NFT's `url`
     public fun url(nft: &ArtfiNFT): &Url {
         &nft.url
     }
 
-    /// Get the NFT's `ID`
+    /// Get ID of the NFT
     public fun id(nft: &ArtfiNFT): ID {
         object::id(nft)
     }
 
-    /// Get Royalty of NFT's
+    /// Get fraction ID of the NFT
+    public fun fraction_id(nft: &ArtfiNFT): u64 {
+        nft.fraction_id
+    }
+
+    /// Get Royalty of the NFT
     public fun royalty(nft: &ArtfiNFT, nft_info: &NFTInfo): Royalty {
         *(vec_map::get(&nft_info.royalty_nft, &object::id(nft)))
     }
 
-    /// Get artfi Royalty of NFT's
+    /// Get artfi Royalty of the NFT
     public fun artfi_royalty(nft: &ArtfiNFT, nft_info: &NFTInfo): u64 {
         vec_map::get(&nft_info.royalty_nft, &object::id(nft)).artfi
     }
 
-    /// Get artist Royalty of NFT's
+    /// Get artist Royalty of the NFT
     public fun artist_royalty(nft: &ArtfiNFT, nft_info: &NFTInfo): u64 {
         vec_map::get(&nft_info.royalty_nft, &object::id(nft)).artist
     }
 
-    /// Get staking contract Royalty of NFT's
+    /// Get staking contract Royalty of the NFT
     public fun staking_contract_royalty(nft: &ArtfiNFT, nft_info: &NFTInfo): u64 {
         vec_map::get(&nft_info.royalty_nft, &object::id(nft)).staking_contract
     }
@@ -141,7 +138,6 @@ module collection::nft {
         transfer::share_object(NFTInfo{
             id: object::new(ctx),
             name: string::utf8(b"Artfi"),
-            description: string::utf8(b"Artfi NFT"),
             royalty_nft: vec_map::empty<ID, Royalty>(),
             default_royalty: Royalty{
                 artfi: 4,
@@ -161,20 +157,20 @@ module collection::nft {
 
     // === Public-Mutative Functions ===
 
-    /// Transfer `nft` to `recipient`
-    public entry fun transfer_nft(
-        nft: ArtfiNFT, recipient: address, _: &mut TxContext
-    ) {
-        transfer::public_transfer(nft, recipient)
-    }
-
     /// Permanently delete `nft`
     public entry fun burn(nft: ArtfiNFT, nft_info: &mut NFTInfo, _: &mut TxContext) {
         let _id = object::id(&nft);
         let (_burn_id, _burn_royalty) = vec_map::remove(&mut nft_info.royalty_nft, &_id);
         
-        let ArtfiNFT { id, fraction_id: _, name: _, description: _, url: _ } = nft;
+        let ArtfiNFT { id, fraction_id: _, name: _, url: _ } = nft;
         object::delete(id);
+    }
+
+    /// Transfer `nft` to `recipient`
+    public entry fun transfer_nft(
+        nft: ArtfiNFT, recipient: address, _: &mut TxContext
+    ) {
+        transfer::public_transfer(nft, recipient);
     }
 
     // === AdminCap Functions ===
@@ -216,7 +212,7 @@ module collection::nft {
         });
     }
 
-    /// Update the metadata of `NFT`
+    /// Update the metadata of the NFT's
     public fun update_metadata(
         _: &AdminCap,
         display_object: &mut display::Display<ArtfiNFT>,
@@ -228,7 +224,6 @@ module collection::nft {
         display::edit(display_object, string::utf8(b"description"), new_description);
 
         nft_info.name = new_name;
-        nft_info.description = new_description;
 
         display::update_version(display_object);
 
@@ -312,7 +307,6 @@ module collection::nft {
             id: object::new(ctx),
             fraction_id,
             name: nft_info.name,
-            description: nft_info.description,
             url: url::new_unsafe_from_bytes(url)
         };
 
@@ -332,7 +326,6 @@ module collection::nft {
     #[test_only]
     public fun new_artfi_nft(
         name: String,
-        description: String,
         url: Url,
         fraction_id: u64,
         nft_info: &mut NFTInfo,
@@ -342,7 +335,6 @@ module collection::nft {
             id: object::new(ctx),
             fraction_id,
             name: name,
-            description: description,
             url: url
         };
 
@@ -364,9 +356,9 @@ module collection::nft {
     }
 
     #[test_only]
-    public fun new_nft_info(name: String, description: String, royalty: Royalty): NFTInfo {
+    public fun new_nft_info(name: String, royalty: Royalty): NFTInfo {
         NFTInfo {
-            id: object::new(&mut tx_context::dummy()), name, description, royalty_nft: vec_map::empty<ID, Royalty>(), default_royalty: royalty
+            id: object::new(&mut tx_context::dummy()), name, royalty_nft: vec_map::empty<ID, Royalty>(), default_royalty: royalty
         }
     }
 
@@ -382,5 +374,11 @@ module collection::nft {
         ctx: &mut TxContext
     ) {
         init(NFT{},ctx);
+    }
+
+    #[test_only]
+    public fun description(display: &display::Display<ArtfiNFT>): String {
+        let fields = display::fields(display);
+        *vec_map::get(fields, &string::utf8(b"description"))
     }
 }
