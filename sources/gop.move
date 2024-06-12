@@ -67,6 +67,12 @@ module collection::gop {
         price: u64,
     }
 
+    struct BuyGop has copy, drop {
+        user: address,
+        fees_paid:  u64,
+        number_of_token_mint: u64
+    }
+
     struct WithdrawFees has copy, drop {
         buy_info_id: ID,
         owner: address,
@@ -203,6 +209,11 @@ module collection::gop {
 
         coin::put(&mut buy_info.balance, coin);
 
+        event::emit(BuyGop{
+            user:  tx_context::sender(ctx),
+            fees_paid: coin_value,
+            number_of_token_mint: no_of_nft_mint
+        });
     }
 
     /// Permanently delete `NFT`
