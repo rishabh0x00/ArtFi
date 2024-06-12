@@ -132,6 +132,8 @@ module collection::gap {
         
         let GAPNFT { id, name: _, url: _ } = nft;
         object::delete(id);
+
+        base_nft::emit_burn_nft<GAPNFT>(_id);
     }
 
     /// Transfer `nft` to `recipient`
@@ -141,7 +143,10 @@ module collection::gap {
         let (_removed_user, _removed_token_id) = vec_map::remove(&mut nft_info.user_token_id, &tx_context::sender(ctx));
         vec_map::insert(&mut nft_info.user_token_id, recipient, _removed_token_id);
 
+        let _id = object::id(&nft);
         transfer::public_transfer(nft, recipient);
+
+        base_nft::emit_transfer_object<GAPNFT>(_id, recipient);
     }
 
     // === AdminCap Functions ===
@@ -209,7 +214,10 @@ module collection::gap {
 
     /// transfer AdminCap to new_owner
     public entry fun transfer_admin_cap(admin_cap: AdminCap, new_owner: address, _: &mut TxContext) {
+        let _id = object::id(&admin_cap);
         transfer::transfer(admin_cap, new_owner);
+
+        base_nft::emit_transfer_object<AdminCap>(_id, new_owner);
     }
 
     // === Private Functions ===
