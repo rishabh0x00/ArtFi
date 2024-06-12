@@ -125,12 +125,11 @@ module collection::gap {
     // === Public-Mutative Functions ===
 
     /// Permanently delete `nft`
-    /// only nft owner can call this function
+    /// Only nft owner can call this function
     /// Emits a NFTBurned for object type GAPNFT
-    public entry fun burn(nft: GAPNFT, nft_info: &mut NFTInfo, ctx: &mut TxContext) {
+    public entry fun burn(nft: GAPNFT, nft_info: &mut NFTInfo, _: &mut TxContext) {
         let _id = object::id(&nft);
         let (_burn_id, _burn_attributes) = vec_map::remove(&mut nft_info.user_detials, &_id);
-        let (_removed_user, _removed_token_id) = vec_map::remove(&mut nft_info.user_token_id, &tx_context::sender(ctx));
         
         let GAPNFT { id, name: _, url: _ } = nft;
         object::delete(id);
@@ -139,14 +138,11 @@ module collection::gap {
     }
 
     /// Transfer `nft` to `recipient`
-    /// only nft owner can call this function
+    /// Only nft owner can call this function
     /// Emits a TransferredObject for object type GAPNFT
     public entry fun transfer_nft(
-        nft: GAPNFT, nft_info: &mut NFTInfo, recipient: address, ctx: &mut TxContext
+        nft: GAPNFT, recipient: address, _: &mut TxContext
     ) {
-        let (_removed_user, _removed_token_id) = vec_map::remove(&mut nft_info.user_token_id, &tx_context::sender(ctx));
-        vec_map::insert(&mut nft_info.user_token_id, recipient, _removed_token_id);
-
         let _id = object::id(&nft);
         transfer::public_transfer(nft, recipient);
 
@@ -156,7 +152,7 @@ module collection::gap {
     // === AdminCap Functions ===
     
     /// Create a multiple GAP and tranfer to user
-    /// can only be called by the owner, which has AdminCap cap object
+    /// Can only be called by the owner, which has admin cap object
     /// Emits a NFTBatchMinted event
     public fun mint_nft_batch(
         _: &AdminCap,
@@ -190,7 +186,7 @@ module collection::gap {
     }
 
     /// Update the metadata of the NFT's
-    /// can only be called by the owner, which has admin cap object
+    /// Can only be called by the owner, which has admin cap object
     /// Emits an NFTMetadataUpdated event
     public fun update_metadata(
         _: &AdminCap,
@@ -210,7 +206,7 @@ module collection::gap {
     }
 
     /// Update the nft attributes
-    /// can only be called by the owner, which has AdminCap object
+    /// Can only be called by the owner, which has admin cap object
     /// Emits an AttributesUpdated event
     public entry fun update_attribute(
         _: &AdminCap,
@@ -223,8 +219,8 @@ module collection::gap {
         });
     }
 
-    /// transfer AdminCap to new_owner
-    /// can only be called by user, who ownes admin cap
+    /// Transfer admin cap to new_owner
+    /// Can only be called by user, who ownes admin cap
     /// Emits a TransferredObject event for object type AdminCap
     public entry fun transfer_admin_cap(admin_cap: AdminCap, new_owner: address, _: &mut TxContext) {
         let _id = object::id(&admin_cap);
