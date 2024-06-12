@@ -183,8 +183,8 @@ module collection::gop {
 
     // === Public-Mutative Functions ===
 
-    /// mint new gop token with respect to number coins provided
-    /// revert on incorrect value of coin
+    /// Mint new gop token with respect to number coins provided
+    /// Revert on incorrect value of coin
     /// Emits TransferredObject for object type GOPNFT and BuyGop
     entry fun buy_gop<CoinType>(
         buy_info: &mut BuyInfo<CoinType>, 
@@ -198,6 +198,7 @@ module collection::gop {
         assert!(extra_coin == 0, EAmountIncorrect);
 
         let no_of_nft_mint = coin_value / buy_info.price;
+        check_mint_limit(nft_info, tx_context::sender(ctx), no_of_nft_mint);
         let index = 0;
         while (index < no_of_nft_mint) {
             mint_nft(
@@ -220,13 +221,11 @@ module collection::gop {
     }
 
     /// Permanently delete `NFT`
-    /// only nft owner can call this function
+    /// Only nft owner can call this function
     /// Emits a NFTBurned for object type GOPNFT
-    public entry fun burn(nft: GOPNFT, nft_info: &mut NFTInfo, ctx: &mut TxContext) {
+    public entry fun burn(nft: GOPNFT, nft_info: &mut NFTInfo, _: &mut TxContext) {
         let _id = object::id(&nft);
         let (_burn_id, _burn_attributes) = vec_map::remove(&mut nft_info.user_detials, &_id);
-        let counter = vec_map::get_mut(&mut nft_info.count, &tx_context::sender(ctx));
-        *counter = *counter - 1;
 
         let GOPNFT { id, name: _, url: _ } = nft;
         object::delete(id);
@@ -235,21 +234,12 @@ module collection::gop {
     }
 
     /// Transfer `nft` to `recipient`
-    /// only nft owner can call this function
+    /// Only nft owner can call this function
     /// Emits a TransferredObject for object type GOPNFT
     public entry fun transfer_nft(
-        nft: GOPNFT, recipient: address, nft_info: &mut NFTInfo, ctx: &mut TxContext
+        nft: GOPNFT, recipient: address, _: &mut TxContext
     ) {
         let _id = object::id(&nft);
-        let counter = vec_map::get_mut(&mut nft_info.count, &tx_context::sender(ctx));
-        *counter = *counter - 1;
-
-        if (vec_map::contains(&nft_info.count, &recipient)) {
-            let counter = vec_map::get_mut(&mut nft_info.count, &recipient);
-            *counter = *counter + 1;
-        } else {
-            vec_map::insert(&mut nft_info.count, recipient, 1);
-        };
 
         transfer::public_transfer(nft, recipient);
 
@@ -259,7 +249,7 @@ module collection::gop {
     // === AdminCap Functions ===
 
     /// Create new BuyInfo object for CoinType and set price
-    /// can only be called by the admin, which has admin cap object
+    /// Can only be called by the admin, which has admin cap object
     /// Emits a BuyInfoCreated event
     public fun init_buy_info<CointType>(_: &AdminCap, price: u64, ctx: &mut TxContext) {
         let buy_info = BuyInfo<CointType>{
@@ -281,7 +271,7 @@ module collection::gop {
     }
     
     /// Create a multiple GOP and tranfer to user
-    /// can only be called by the owner, which has admin cap object
+    /// Can only be called by the owner, which has admin cap object
     /// Emits a NFTBatchMinted event
     public fun mint_nft_batch(
         _: &AdminCap,
@@ -290,8 +280,8 @@ module collection::gop {
         user: address,
         ctx: &mut TxContext
     ) {
-        check_mint_limit(nft_info, user);
         let lengthOfVector = vector::length(uris);
+        check_mint_limit(nft_info, user, lengthOfVector);
         let ids: vector<ID> = vector[];
         let index = 0;
 
@@ -311,7 +301,7 @@ module collection::gop {
     }
 
     /// Update the metadata of the NFT's
-    /// can only be called by the owner, which has admin cap object
+    /// Can only be called by the owner, which has admin cap object
     /// Emits an NFTMetadataUpdated event
     public fun update_metadata(
         _: &AdminCap,
@@ -331,7 +321,7 @@ module collection::gop {
     }
 
     /// Update the nft attributes
-    /// can only be called by the owner, which has admin cap object
+    /// Can only be called by the owner, which has admin cap object
     /// Emits an AttributesUpdated event
     public entry fun update_attribute(
         _: &AdminCap,
@@ -349,7 +339,7 @@ module collection::gop {
     }
 
     /// Update the buy info object owner
-    /// can only be called by the owner, which has admin cap object
+    /// Can only be called by the owner, which has admin cap object
     public entry fun update_buy_info_owner<CoinType>(
         _: &AdminCap,
         buy_info: &mut BuyInfo<CoinType>,
@@ -360,7 +350,7 @@ module collection::gop {
     }
 
     /// Update the buy info object price
-    /// can only be called by the owner, which has admin cap object
+    /// Can only be called by the owner, which has admin cap object
     public entry fun update_buy_info_price<CoinType>(
         _: &AdminCap,
         buy_info: &mut BuyInfo<CoinType>,
@@ -371,7 +361,7 @@ module collection::gop {
     }
 
     /// Withdraw accumulated fees from user
-    /// can only be called by the owner of buy info object
+    /// Can only be called by the owner of buy info object
     public entry fun take_fees<CoinType>(
         buy_info: &mut BuyInfo<CoinType>,
         ctx: &mut TxContext
@@ -389,8 +379,8 @@ module collection::gop {
         })
     }
 
-    /// transfer AdminCap to new_owner
-    /// can only be called by user, who ownes admin cap
+    /// Transfer AdminCap to new_owner
+    /// Can only be called by user, who ownes admin cap
     /// Emits a TransferredObject event for object type AdminCap
     public entry fun transfer_admin_cap(admin_cap: AdminCap, new_owner: address, _: &mut TxContext) {
         let _id = object::id(&admin_cap);
@@ -403,14 +393,15 @@ module collection::gop {
 
     fun check_mint_limit(
         mint_counter: &mut NFTInfo,
-        user: address
+        user: address,
+        number_of_token_mint: u64
     ) {
         if (vec_map::contains(&mint_counter.count, &user)) {
-            assert!(*(vec_map::get(&mint_counter.count, &user)) < 50,ELimitExceed);
+            assert!(*(vec_map::get(&mint_counter.count, &user)) + number_of_token_mint <= 50,ELimitExceed);
             let counter = vec_map::get_mut(&mut mint_counter.count, &user);
-            *counter = *counter + 1;
+            *counter = *counter + number_of_token_mint;
         } else {
-            vec_map::insert(&mut mint_counter.count, user, 1);
+            vec_map::insert(&mut mint_counter.count, user, number_of_token_mint);
         };
     } 
     
@@ -445,8 +436,6 @@ module collection::gop {
         url: vector<u8>,
         ctx: &mut TxContext
     ) { 
-        check_mint_limit(nft_info, user);
-
         let id: ID = mint_func(
             nft_info,
             url,

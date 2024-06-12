@@ -158,7 +158,7 @@ module collection::nft {
     // === Public-Mutative Functions ===
 
     /// Permanently delete `nft`
-    /// only nft owner can call this function
+    /// Only nft owner can call this function
     /// Emits a NFTBurned for object type ArtfiNFT
     public entry fun burn(nft: ArtfiNFT, nft_info: &mut NFTInfo, _: &mut TxContext) {
         let _id = object::id(&nft);
@@ -171,7 +171,7 @@ module collection::nft {
     }
 
     /// Transfer `nft` to `recipient`
-    /// only nft owner can call this function
+    /// Only nft owner can call this function
     /// Emits a TransferredObject for object type ArtfiNFT
     public entry fun transfer_nft(
         nft: ArtfiNFT, recipient: address, _: &mut TxContext
@@ -185,7 +185,7 @@ module collection::nft {
     // === AdminCap Functions ===
 
     /// Update the defualt royalty
-    /// can only be called by the admin, which has minter cap object
+    /// Can only be called by the admin, which has minter cap object
     /// Emits a RoyaltyUpdated event
     public entry fun update_royalty(
         _: &MinterCap,
@@ -207,7 +207,7 @@ module collection::nft {
     }
 
     /// Update the nft royalty
-    /// can only be called by the owner, which has minter cap object
+    /// Can only be called by the owner, which has minter cap object
     /// Emits an AttributesUpdated event
     public entry fun update_nft_royalty(
         _: &MinterCap,
@@ -226,7 +226,7 @@ module collection::nft {
     }
 
     /// Update the metadata of the NFT's
-    /// can only be called by the owner, which has admin cap object
+    /// Can only be called by the owner, which has admin cap object
     /// Emits an NFTMetadataUpdated event
     public fun update_metadata(
         _: &AdminCap,
@@ -246,7 +246,7 @@ module collection::nft {
     }
 
     /// Create a new ArtfiNFT and tranfer to user
-    /// can only be called by the owner, which has minter cap object
+    /// Can only be called by the owner, which has minter cap object
     public entry fun mint_nft(
         _: &MinterCap,
         nft_info: &mut NFTInfo,
@@ -267,7 +267,7 @@ module collection::nft {
     }
     
     /// Create a multiple ArtfiNFT and tranfer to user
-    /// can only be called by the owner, which has minter cap object
+    /// Can only be called by the owner, which has minter cap object
     /// Emits a NFTBatchMinted event
     public fun mint_nft_batch(
         _: &MinterCap,
@@ -300,8 +300,8 @@ module collection::nft {
         base_nft::emit_batch_mint_nft(ids, lengthOfVector, tx_context::sender(ctx), nft_info.name);
     }
 
-    /// transfer AdminCap to new_owner
-    /// can only be called by user, who ownes admin cap
+    /// Transfer AdminCap to new_owner
+    /// Can only be called by user, who ownes admin cap
     /// Emits a TransferredObject event for object type AdminCap
     public entry fun transfer_admin_cap(admin_cap: AdminCap, new_owner: address, _: &mut TxContext) {
         let _id = object::id(&admin_cap);
@@ -310,8 +310,8 @@ module collection::nft {
         base_nft::emit_transfer_object<AdminCap>(_id, new_owner);
     }
 
-    /// transfer new instance of MinterCap to minter_owner
-    /// can only be called by user, who ownes admin cap
+    /// Transfer new instance of MinterCap to minter_owner
+    /// Can only be called by user, who ownes admin cap
     /// Emits a TransferredObject event for object type AdminCap
     public entry fun transfer_minter_cap(_: &AdminCap, minter_owner: address, ctx: &mut TxContext) {
         let minter_cap = MinterCap {

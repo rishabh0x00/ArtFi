@@ -168,7 +168,7 @@ module collection::base_nft {
 
     // === AdminCap Functions ===
 
-    /// transfer AdminCap to new_owner
+    /// Transfer admin cap to new_owner
     /// Emits a TransferredObject for object type AdminCap
     public entry fun transfer_admin_cap(admin_cap: AdminCap, new_owner: address, _: &mut TxContext) {
         let _id = object::id(&admin_cap);
