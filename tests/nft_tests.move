@@ -8,8 +8,6 @@ module collection::nft_tests {
     use collection::base_nft;
     use sui::url;
     use std::string;
-    use sui::tx_context;
-    use sui::object;
     use sui::package;
 
     #[test_only] use sui::test_utils;
@@ -26,7 +24,7 @@ module collection::nft_tests {
         let artist_royalty = 3;
         let staking_contract_royalty = 3;
         let royalty = nft::new_royalty(artfi_royalty, artist_royalty, staking_contract_royalty);
-        let nft_info = nft::new_nft_info(string::utf8(name), royalty);
+        let mut nft_info = nft::new_nft_info(string::utf8(name), royalty);
         let test_net_nft = nft::new_artfi_nft(
             string::utf8(name),
             url::new_unsafe_from_bytes(nft_url), 
@@ -48,7 +46,7 @@ module collection::nft_tests {
     fun nft_description_test() {
         let initial_owner = @0xCAFE;
 
-        let scenario = test_scenario::begin(initial_owner);
+        let mut scenario = test_scenario::begin(initial_owner);
         {   
             test_scenario::sender(&scenario);
 
@@ -78,7 +76,7 @@ module collection::nft_tests {
         let artist_royalty = 3;
         let staking_contract_royalty = 3;
         let royalty = nft::new_royalty(artfi_royalty, artist_royalty, staking_contract_royalty);
-        let nft_info = nft::new_nft_info(string::utf8(name), royalty);
+        let mut nft_info = nft::new_nft_info(string::utf8(name), royalty);
         let test_net_nft = nft::new_artfi_nft(
             string::utf8(name),
             url::new_unsafe_from_bytes(nft_url), 
@@ -102,7 +100,7 @@ module collection::nft_tests {
         let artist_royalty = 3;
         let staking_contract_royalty = 3;
         let royalty = nft::new_royalty(artfi_royalty, artist_royalty, staking_contract_royalty);
-        let nft_info = nft::new_nft_info(string::utf8(name), royalty);
+        let mut nft_info = nft::new_nft_info(string::utf8(name), royalty);
         let test_net_nft = nft::new_artfi_nft(
             string::utf8(name),
             url::new_unsafe_from_bytes(nft_url), 
@@ -128,7 +126,7 @@ module collection::nft_tests {
         let artist_royalty = 3;
         let staking_contract_royalty = 3;
         let royalty = nft::new_royalty(artfi_royalty, artist_royalty, staking_contract_royalty);
-        let nft_info = nft::new_nft_info(string::utf8(name), royalty);
+        let mut nft_info = nft::new_nft_info(string::utf8(name), royalty);
         let test_net_nft = nft::new_artfi_nft(
             string::utf8(name),
             url::new_unsafe_from_bytes(nft_url), 
@@ -152,7 +150,7 @@ module collection::nft_tests {
         let artist_royalty = 3;
         let staking_contract_royalty = 3;
         let royalty = nft::new_royalty(artfi_royalty, artist_royalty, staking_contract_royalty);
-        let nft_info = nft::new_nft_info(string::utf8(name), royalty);
+        let mut nft_info = nft::new_nft_info(string::utf8(name), royalty);
         let test_net_nft = nft::new_artfi_nft(
             string::utf8(name),
             url::new_unsafe_from_bytes(nft_url), 
@@ -176,7 +174,7 @@ module collection::nft_tests {
         let artist_royalty = 3;
         let staking_contract_royalty = 3;
         let royalty = nft::new_royalty(artfi_royalty, artist_royalty, staking_contract_royalty);
-        let nft_info = nft::new_nft_info(string::utf8(name), royalty);
+        let mut nft_info = nft::new_nft_info(string::utf8(name), royalty);
         let test_net_nft = nft::new_artfi_nft(
             string::utf8(name),
             url::new_unsafe_from_bytes(nft_url), 
@@ -196,7 +194,7 @@ module collection::nft_tests {
         let initial_owner = @0xCAFE;
         let final_owner = @0xFACE;
 
-        let scenario = test_scenario::begin(initial_owner);
+        let mut scenario = test_scenario::begin(initial_owner);
         {   
             test_scenario::sender(&scenario);
 
@@ -223,7 +221,7 @@ module collection::nft_tests {
         let initial_owner = @0xCAFE;
         let final_owner = @0xFACE;
 
-        let scenario = test_scenario::begin(initial_owner);
+        let mut scenario = test_scenario::begin(initial_owner);
         {   
             test_scenario::sender(&scenario);
 
@@ -250,7 +248,7 @@ module collection::nft_tests {
         let initial_owner = @0xCAFE;
         let final_owner = @0xFACE;
 
-        let scenario = test_scenario::begin(initial_owner);
+        let mut scenario = test_scenario::begin(initial_owner);
         {   
             test_scenario::sender(&scenario);
 
@@ -275,7 +273,7 @@ module collection::nft_tests {
         let initial_owner = @0xCAFE;
         let final_owner = @0xFACE;
 
-        let scenario = test_scenario::begin(initial_owner);
+        let mut scenario = test_scenario::begin(initial_owner);
         {   
             test_scenario::sender(&scenario);
 
@@ -302,7 +300,7 @@ module collection::nft_tests {
         let initial_owner = @0xCAFE;
         let final_owner = @0xFACE;
 
-        let scenario = test_scenario::begin(initial_owner);
+        let mut scenario = test_scenario::begin(initial_owner);
         {   
             test_scenario::sender(&scenario);
 
@@ -314,7 +312,7 @@ module collection::nft_tests {
         {
 
             let minter_cap = test_scenario::take_from_sender<nft::MinterCap>(&scenario);
-            let nft_info = test_scenario::take_shared<nft::NFTInfo>(&scenario);
+            let mut nft_info = test_scenario::take_shared<nft::NFTInfo>(&scenario);
             nft::mint_nft(
                 &minter_cap, 
                 &mut nft_info,
@@ -357,7 +355,7 @@ module collection::nft_tests {
         let initial_owner = @0xCAFE;
         let final_owner = @0xFACE;
 
-        let scenario = test_scenario::begin(initial_owner);
+        let mut scenario = test_scenario::begin(initial_owner);
         {   
             test_scenario::sender(&scenario);
 
@@ -369,7 +367,7 @@ module collection::nft_tests {
         {
 
             let minter_cap = test_scenario::take_from_sender<nft::MinterCap>(&scenario);
-            let nft_info = test_scenario::take_shared<nft::NFTInfo>(&scenario);
+            let mut nft_info = test_scenario::take_shared<nft::NFTInfo>(&scenario);
 
             nft::mint_nft_batch(
                 &minter_cap, 
@@ -413,7 +411,7 @@ module collection::nft_tests {
         let final_owner = @0xFACE;
         let user = @0xEAFF;
 
-        let scenario = test_scenario::begin(initial_owner);
+        let mut scenario = test_scenario::begin(initial_owner);
         {   
             test_scenario::sender(&scenario);
 
@@ -425,7 +423,7 @@ module collection::nft_tests {
         {
 
             let minter_cap = test_scenario::take_from_sender<nft::MinterCap>(&scenario);
-            let nft_info = test_scenario::take_shared<nft::NFTInfo>(&scenario);
+            let mut nft_info = test_scenario::take_shared<nft::NFTInfo>(&scenario);
 
             nft::mint_nft(
                 &minter_cap, 
@@ -476,7 +474,7 @@ module collection::nft_tests {
         let initial_owner = @0xCAFE;
         let final_owner = @0xFACE;
 
-        let scenario = test_scenario::begin(initial_owner);
+        let mut scenario = test_scenario::begin(initial_owner);
         {   
             test_scenario::sender(&scenario);
 
@@ -489,7 +487,7 @@ module collection::nft_tests {
 
             let minter_cap = test_scenario::take_from_sender<nft::MinterCap>(&scenario);
             let display_object = test_scenario::take_from_sender<display::Display<nft::ArtfiNFT>>(&scenario);
-            let nft_info = test_scenario::take_shared<nft::NFTInfo>(&scenario);
+            let mut nft_info = test_scenario::take_shared<nft::NFTInfo>(&scenario);
 
             nft::mint_nft(
                 &minter_cap, 
@@ -515,7 +513,7 @@ module collection::nft_tests {
         test_scenario::next_tx(&mut scenario, initial_owner);
         {   
             let admin_cap = test_scenario::take_from_sender<nft::AdminCap>(&scenario);
-            let nft_info = test_scenario::take_shared<nft::NFTInfo>(&scenario);
+            let mut nft_info = test_scenario::take_shared<nft::NFTInfo>(&scenario);
 
             nft::burn(nftToken, &mut nft_info, test_scenario::ctx(&mut scenario));
 
@@ -539,7 +537,7 @@ module collection::nft_tests {
         let initial_owner = @0xCAFE;
         let final_owner = @0xFACE;
 
-        let scenario = test_scenario::begin(initial_owner);
+        let mut scenario = test_scenario::begin(initial_owner);
         {   
             test_scenario::sender(&scenario);
 
@@ -550,7 +548,7 @@ module collection::nft_tests {
         test_scenario::next_tx(&mut scenario, initial_owner);
         {   
             let mintCap = test_scenario::take_from_sender<nft::MinterCap>(&scenario);
-            let nft_info = test_scenario::take_shared<nft::NFTInfo>(&scenario);
+            let mut nft_info = test_scenario::take_shared<nft::NFTInfo>(&scenario);
 
             nft::update_royalty(&mintCap, &mut nft_info, 5, 4 , 3, test_scenario::ctx(&mut scenario));
 
@@ -580,7 +578,7 @@ module collection::nft_tests {
         let initial_owner = @0xCAFE;
         let final_owner = @0xFACE;
 
-        let scenario = test_scenario::begin(initial_owner);
+        let mut scenario = test_scenario::begin(initial_owner);
         {   
             test_scenario::sender(&scenario);
 
@@ -592,7 +590,7 @@ module collection::nft_tests {
         {
 
             let minter_cap = test_scenario::take_from_sender<nft::MinterCap>(&scenario);
-            let nft_info = test_scenario::take_shared<nft::NFTInfo>(&scenario);
+            let mut nft_info = test_scenario::take_shared<nft::NFTInfo>(&scenario);
 
             nft::mint_nft(
                 &minter_cap, 
@@ -620,7 +618,7 @@ module collection::nft_tests {
         test_scenario::next_tx(&mut scenario, initial_owner);
         {
             let mintCap = test_scenario::take_from_sender<nft::MinterCap>(&scenario);
-            let nft_info = test_scenario::take_shared<nft::NFTInfo>(&scenario);
+            let mut nft_info = test_scenario::take_shared<nft::NFTInfo>(&scenario);
 
             nft::update_nft_royalty(&mintCap, &mut nft_info, nft_id, 5, 4 , 3, test_scenario::ctx(&mut scenario));
 
@@ -652,7 +650,7 @@ module collection::nft_tests {
         let initial_owner = @0xCAFE;
         let final_owner = @0xFACE;
 
-        let scenario = test_scenario::begin(initial_owner);
+        let mut scenario = test_scenario::begin(initial_owner);
         {   
             test_scenario::sender(&scenario);
 
@@ -679,7 +677,7 @@ module collection::nft_tests {
         let initial_owner = @0xCAFE;
         let final_owner = @0xFACE;
 
-        let scenario = test_scenario::begin(initial_owner);
+        let mut scenario = test_scenario::begin(initial_owner);
         {   
             test_scenario::sender(&scenario);
 
@@ -709,7 +707,7 @@ module collection::nft_tests {
         let final_owner = @0xFACE;
         let user = @0xEAFF;
 
-        let scenario = test_scenario::begin(initial_owner);
+        let mut scenario = test_scenario::begin(initial_owner);
         {   
             test_scenario::sender(&scenario);
 
@@ -722,7 +720,7 @@ module collection::nft_tests {
 
             let minter_cap = test_scenario::take_from_sender<nft::MinterCap>(&scenario);
             let display_object = test_scenario::take_from_sender<display::Display<nft::ArtfiNFT>>(&scenario);
-            let royalty_object = test_scenario::take_shared<nft::NFTInfo>(&scenario);
+            let mut royalty_object = test_scenario::take_shared<nft::NFTInfo>(&scenario);
 
             nft::mint_nft(
                 &minter_cap, 
@@ -759,7 +757,7 @@ module collection::nft_tests {
         let initial_owner = @0xCAFE;
         let final_owner = @0xFACE;
 
-        let scenario = test_scenario::begin(initial_owner);
+        let mut scenario = test_scenario::begin(initial_owner);
         {   
             test_scenario::sender(&scenario);
 
@@ -771,7 +769,7 @@ module collection::nft_tests {
         {
 
             let minter_cap = test_scenario::take_from_sender<nft::MinterCap>(&scenario);
-            let royalty_object = test_scenario::take_shared<nft::NFTInfo>(&scenario);
+            let mut royalty_object = test_scenario::take_shared<nft::NFTInfo>(&scenario);
 
             nft::mint_nft_batch(
                 &minter_cap, 
@@ -796,7 +794,7 @@ module collection::nft_tests {
         let initial_owner = @0xCAFE;
         let final_owner = @0xFACE;
 
-        let scenario = test_scenario::begin(initial_owner);
+        let mut scenario = test_scenario::begin(initial_owner);
         {   
             test_scenario::sender(&scenario);
 
@@ -806,7 +804,7 @@ module collection::nft_tests {
 
         test_scenario::next_tx(&mut scenario, final_owner);
         {
-            let nft_info = test_scenario::take_shared<nft::NFTInfo>(&scenario);
+            let mut nft_info = test_scenario::take_shared<nft::NFTInfo>(&scenario);
             let minter_cap = test_scenario::take_from_sender<nft::MinterCap>(&scenario);
 
             nft::update_royalty(&minter_cap, &mut nft_info, 4 , 3, 3, test_scenario::ctx(&mut scenario));
@@ -828,7 +826,7 @@ module collection::nft_tests {
         let initial_owner = @0xCAFE;
         let final_owner = @0xFACE;
 
-        let scenario = test_scenario::begin(initial_owner);
+        let mut scenario = test_scenario::begin(initial_owner);
         {   
             test_scenario::sender(&scenario);
 
@@ -843,7 +841,7 @@ module collection::nft_tests {
 
             let minter_cap = test_scenario::take_from_sender<nft::MinterCap>(&scenario);
             let display_object = test_scenario::take_from_sender<display::Display<nft::ArtfiNFT>>(&scenario);
-            let nft_info = test_scenario::take_shared<nft::NFTInfo>(&scenario);
+            let mut nft_info = test_scenario::take_shared<nft::NFTInfo>(&scenario);
 
             nft::mint_nft(
                 &minter_cap, 
@@ -864,7 +862,7 @@ module collection::nft_tests {
 
         test_scenario::next_tx(&mut scenario, final_owner);
         {
-            let nft_info = test_scenario::take_shared<nft::NFTInfo>(&scenario);
+            let mut nft_info = test_scenario::take_shared<nft::NFTInfo>(&scenario);
             let minter_cap = test_scenario::take_from_sender<nft::MinterCap>(&scenario);
 
             nft::update_nft_royalty(&minter_cap, &mut nft_info, object::id(&nft_object), 4, 3, 3, test_scenario::ctx(&mut scenario));

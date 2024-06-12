@@ -4,22 +4,19 @@ module collection::base_nft {
     use std::string::String;
 
     use sui::event;
-    use sui::object::{Self, ID, UID};
-    use sui::transfer;
-    use sui::tx_context::{Self, TxContext};
     use sui::vec_map;
     use sui::display;
     use sui::package;
 
     // === Structs ===
 
-    struct AdminCap has key {
+    public struct AdminCap has key {
         id: UID
     }
 
     // ===== Events =====
 
-    struct NFTMinted has copy, drop {
+    public struct NFTMinted has copy, drop {
         // The Object ID of the GOP
         token_id: ID,
         // The creator of the GOP
@@ -28,7 +25,7 @@ module collection::base_nft {
         name: String,
     }
 
-    struct NFTBatchMinted has copy, drop {
+    public struct NFTBatchMinted has copy, drop {
         // The Object IDs of Batch Minted GOPs
         token_ids: vector<ID>,
         // The creator of the GOP
@@ -39,26 +36,26 @@ module collection::base_nft {
         no_of_tokens: u64
     }
 
-    struct NFTBurned<phantom T> has copy, drop {
+    public struct NFTBurned<phantom T> has copy, drop {
         // The Object ID of the NFT
         token_id: ID,
     }
 
-    struct TransferredObject<phantom T> has copy, drop {
+    public struct TransferredObject<phantom T> has copy, drop {
         // The Object ID of the NFT
         token_id: ID,
         // address of receiver
         recipient: address
     }
 
-    struct NFTMetadataUpdated has copy, drop {
+    public struct NFTMetadataUpdated has copy, drop {
         /// Name for the token
         name: String,
         /// Description of the token
         description: String,
     }
 
-    struct AttributesUpdated<T, U> has copy, drop {
+    public struct AttributesUpdated<T, U> has copy, drop {
         key: T,
         value: U
     }

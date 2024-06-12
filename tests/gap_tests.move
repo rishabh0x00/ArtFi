@@ -8,8 +8,6 @@ module collection::gap_tests {
     use collection::base_nft;
     use sui::url;
     use std::string;
-    use sui::tx_context;
-    use sui::object;
     use sui::package;
 
     #[test_only] use sui::test_utils;
@@ -21,7 +19,7 @@ module collection::gap_tests {
     fun nft_name_test() {
         let name = b"Artfi";
         let nft_url = b"Artfi NFT";
-        let nft_info = gap::new_nft_info(string::utf8(name));
+        let mut nft_info = gap::new_nft_info(string::utf8(name));
         let test_net_nft = gap::new_gap_nft(
             string::utf8(name),
             url::new_unsafe_from_bytes(nft_url), 
@@ -42,7 +40,7 @@ module collection::gap_tests {
     fun nft_description_test() {
         let initial_owner = @0xCAFE;
 
-        let scenario = test_scenario::begin(initial_owner);
+        let mut scenario = test_scenario::begin(initial_owner);
         {   
             test_scenario::sender(&scenario);
 
@@ -67,7 +65,7 @@ module collection::gap_tests {
     fun nft_url_test() {
         let name = b"Artfi";
         let nft_url = b" ";
-        let nft_info = gap::new_nft_info(string::utf8(name));
+        let mut nft_info = gap::new_nft_info(string::utf8(name));
         let test_net_nft = gap::new_gap_nft(
             string::utf8(name),
             url::new_unsafe_from_bytes(nft_url), 
@@ -85,7 +83,7 @@ module collection::gap_tests {
     fun nft_attributes_test() {
         let name = b"Artfi";
         let nft_url = b" ";
-        let nft_info = gap::new_nft_info(string::utf8(name));
+        let mut nft_info = gap::new_nft_info(string::utf8(name));
         let test_net_nft = gap::new_gap_nft(
             string::utf8(name),
             url::new_unsafe_from_bytes(nft_url), 
@@ -105,7 +103,7 @@ module collection::gap_tests {
     fun nft_ieo_attributes_test() {
         let name = b"Artfi";
         let nft_url = b" ";
-        let nft_info = gap::new_nft_info(string::utf8(name));
+        let mut nft_info = gap::new_nft_info(string::utf8(name));
         let test_net_nft = gap::new_gap_nft(
             string::utf8(name),
             url::new_unsafe_from_bytes(nft_url), 
@@ -124,7 +122,7 @@ module collection::gap_tests {
         let initial_owner = @0xCAFE;
         let final_owner = @0xFACE;
 
-        let scenario = test_scenario::begin(initial_owner);
+        let mut scenario = test_scenario::begin(initial_owner);
         {   
             test_scenario::sender(&scenario);
 
@@ -148,7 +146,7 @@ module collection::gap_tests {
         let initial_owner = @0xCAFE;
         let final_owner = @0xFACE;
 
-        let scenario = test_scenario::begin(initial_owner);
+        let mut scenario = test_scenario::begin(initial_owner);
         {   
             test_scenario::sender(&scenario);
 
@@ -173,7 +171,7 @@ module collection::gap_tests {
         let initial_owner = @0xCAFE;
         let final_owner = @0xFACE;
 
-        let scenario = test_scenario::begin(initial_owner);
+        let mut scenario = test_scenario::begin(initial_owner);
         {   
             test_scenario::sender(&scenario);
 
@@ -197,7 +195,7 @@ module collection::gap_tests {
         let initial_owner = @0xCAFE;
         let final_owner = @0xFACE;
 
-        let scenario = test_scenario::begin(initial_owner);
+        let mut scenario = test_scenario::begin(initial_owner);
         {   
             test_scenario::sender(&scenario);
 
@@ -209,7 +207,7 @@ module collection::gap_tests {
         {
 
             let admin_cap = test_scenario::take_from_sender<gap::AdminCap>(&scenario);
-            let nft_info = test_scenario::take_shared<gap::NFTInfo>(&scenario);
+            let mut nft_info = test_scenario::take_shared<gap::NFTInfo>(&scenario);
 
             gap::mint_nft_batch(
                 &admin_cap,
@@ -248,7 +246,7 @@ module collection::gap_tests {
         let initial_owner = @0xCAFE;
         let final_owner = @0xFACE;
 
-        let scenario = test_scenario::begin(initial_owner);
+        let mut scenario = test_scenario::begin(initial_owner);
         {   
             test_scenario::sender(&scenario);
 
@@ -260,7 +258,7 @@ module collection::gap_tests {
         {
 
             let admin_cap = test_scenario::take_from_sender<gap::AdminCap>(&scenario);
-            let nft_info = test_scenario::take_shared<gap::NFTInfo>(&scenario);
+            let mut nft_info = test_scenario::take_shared<gap::NFTInfo>(&scenario);
 
             gap::mint_nft_batch(
                 &admin_cap, 
@@ -278,16 +276,12 @@ module collection::gap_tests {
         {
 
             let nft_object = test_scenario::take_from_sender<gap::GAPNFT>(&scenario);
-            let nft_info = test_scenario::take_shared<gap::NFTInfo>(&scenario);
 
             gap::transfer_nft(
                 nft_object,
-                &mut nft_info,
                 final_owner, 
                 test_scenario::ctx(&mut scenario)
             );
-
-            test_scenario::return_shared(nft_info);
         };
 
         test_scenario::next_tx(&mut scenario,final_owner);
@@ -315,7 +309,7 @@ module collection::gap_tests {
         let initial_owner = @0xCAFE;
         let final_owner = @0xFACE;
 
-        let scenario = test_scenario::begin(initial_owner);
+        let mut scenario = test_scenario::begin(initial_owner);
         {   
             test_scenario::sender(&scenario);
 
@@ -327,7 +321,7 @@ module collection::gap_tests {
         {
 
             let admin_cap = test_scenario::take_from_sender<gap::AdminCap>(&scenario);
-            let nft_info = test_scenario::take_shared<gap::NFTInfo>(&scenario);
+            let mut nft_info = test_scenario::take_shared<gap::NFTInfo>(&scenario);
 
             gap::mint_nft_batch(
                 &admin_cap, 
@@ -353,7 +347,7 @@ module collection::gap_tests {
         test_scenario::next_tx(&mut scenario, initial_owner);
         {
             let admin_cap = test_scenario::take_from_sender<gap::AdminCap>(&scenario);
-            let nft_info = test_scenario::take_shared<gap::NFTInfo>(&scenario);
+            let mut nft_info = test_scenario::take_shared<gap::NFTInfo>(&scenario);
 
             gap::update_attribute(&admin_cap, &mut nft_info, nft_id, true);
 
@@ -384,7 +378,7 @@ module collection::gap_tests {
         let initial_owner = @0xCAFE;
         let final_owner = @0xFACE;
 
-        let scenario = test_scenario::begin(initial_owner);
+        let mut scenario = test_scenario::begin(initial_owner);
         {   
             test_scenario::sender(&scenario);
 
@@ -396,7 +390,7 @@ module collection::gap_tests {
         {
 
             let admin_cap = test_scenario::take_from_sender<gap::AdminCap>(&scenario);
-            let nft_info = test_scenario::take_shared<gap::NFTInfo>(&scenario);
+            let mut nft_info = test_scenario::take_shared<gap::NFTInfo>(&scenario);
 
             gap::mint_nft_batch(
                 &admin_cap, 
@@ -414,7 +408,7 @@ module collection::gap_tests {
         {
 
             let nft_object = test_scenario::take_from_sender<gap::GAPNFT>(&scenario);
-            let nft_info = test_scenario::take_shared<gap::NFTInfo>(&scenario);
+            let mut nft_info = test_scenario::take_shared<gap::NFTInfo>(&scenario);
 
             gap::burn(
                 nft_object,
@@ -440,7 +434,7 @@ module collection::gap_tests {
         let initial_owner = @0xCAFE;
         let final_owner = @0xFACE;
 
-        let scenario = test_scenario::begin(initial_owner);
+        let mut scenario = test_scenario::begin(initial_owner);
         {   
             test_scenario::sender(&scenario);
 
@@ -466,7 +460,7 @@ module collection::gap_tests {
         let initial_owner = @0xCAFE;
         let final_owner = @0xFACE;
 
-        let scenario = test_scenario::begin(initial_owner);
+        let mut scenario = test_scenario::begin(initial_owner);
         {   
             test_scenario::sender(&scenario);
 
@@ -478,7 +472,7 @@ module collection::gap_tests {
         {
 
             let admin_cap = test_scenario::take_from_sender<gap::AdminCap>(&scenario);
-            let nft_info = test_scenario::take_shared<gap::NFTInfo>(&scenario);
+            let mut nft_info = test_scenario::take_shared<gap::NFTInfo>(&scenario);
 
             gap::mint_nft_batch(
                 &admin_cap, 
@@ -495,16 +489,12 @@ module collection::gap_tests {
         test_scenario::next_tx(&mut scenario, initial_owner);
         {
             let nft_object = test_scenario::take_from_sender<gap::GAPNFT>(&scenario);
-            let nft_info = test_scenario::take_shared<gap::NFTInfo>(&scenario);
 
             gap::transfer_nft(
                 nft_object,
-                &mut nft_info,
                 final_owner, 
                 test_scenario::ctx(&mut scenario)
             );
-
-            test_scenario::return_shared(nft_info);
         };
 
         test_scenario::end(scenario);
@@ -518,7 +508,7 @@ module collection::gap_tests {
         let initial_owner = @0xCAFE;
         let final_owner = @0xFACE;
 
-        let scenario = test_scenario::begin(initial_owner);
+        let mut scenario = test_scenario::begin(initial_owner);
         {   
             test_scenario::sender(&scenario);
 
@@ -531,7 +521,7 @@ module collection::gap_tests {
         {
 
             let admin_cap = test_scenario::take_from_sender<gap::AdminCap>(&scenario);
-            let nft_info = test_scenario::take_shared<gap::NFTInfo>(&scenario);
+            let mut nft_info = test_scenario::take_shared<gap::NFTInfo>(&scenario);
 
             gap::mint_nft_batch(
                 &admin_cap, 
@@ -550,7 +540,7 @@ module collection::gap_tests {
 
         test_scenario::next_tx(&mut scenario, final_owner);
         {
-            let nft_info = test_scenario::take_shared<gap::NFTInfo>(&scenario);
+            let mut nft_info = test_scenario::take_shared<gap::NFTInfo>(&scenario);
             let admin_cap = test_scenario::take_from_sender<gap::AdminCap>(&scenario);
 
             gap::update_attribute(&admin_cap, &mut nft_info, object::id(&nft_object), true);

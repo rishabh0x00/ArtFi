@@ -9,8 +9,6 @@ module collection::trophy_tests {
     use collection::nft;
     use sui::url;
     use std::string;
-    use sui::tx_context;
-    use sui::object;
     use sui::package;
 
     #[test_only] use sui::test_utils;
@@ -22,7 +20,7 @@ module collection::trophy_tests {
     fun nft_name_test() {
         let name = b"Artfi";
         let nft_url = b"Artfi NFT";
-        let nft_info = trophy::new_nft_info(string::utf8(name));
+        let mut nft_info = trophy::new_nft_info(string::utf8(name));
         let test_net_nft = trophy::new_trophy_nft(
             string::utf8(name),
             url::new_unsafe_from_bytes(nft_url), 
@@ -44,7 +42,7 @@ module collection::trophy_tests {
     fun nft_description_test() {
         let initial_owner = @0xCAFE;
 
-        let scenario = test_scenario::begin(initial_owner);
+        let mut scenario = test_scenario::begin(initial_owner);
         {   
             test_scenario::sender(&scenario);
 
@@ -69,7 +67,7 @@ module collection::trophy_tests {
     fun nft_url_test() {
         let name = b"Artfi";
         let nft_url = b" ";
-        let nft_info = trophy::new_nft_info(string::utf8(name));
+        let mut nft_info = trophy::new_nft_info(string::utf8(name));
         let test_net_nft = trophy::new_trophy_nft(
             string::utf8(name),
             url::new_unsafe_from_bytes(nft_url), 
@@ -88,7 +86,7 @@ module collection::trophy_tests {
     fun nft_attributes_test() {
         let name = b"Artfi";
         let nft_url = b" ";
-        let nft_info = trophy::new_nft_info(string::utf8(name));
+        let mut nft_info = trophy::new_nft_info(string::utf8(name));
         let test_net_nft = trophy::new_trophy_nft(
             string::utf8(name),
             url::new_unsafe_from_bytes(nft_url), 
@@ -109,7 +107,7 @@ module collection::trophy_tests {
     fun nft_fraction_id_attributes_test() {
         let name = b"Artfi";
         let nft_url = b" ";
-        let nft_info = trophy::new_nft_info(string::utf8(name));
+        let mut nft_info = trophy::new_nft_info(string::utf8(name));
         let test_net_nft = trophy::new_trophy_nft(
             string::utf8(name),
             url::new_unsafe_from_bytes(nft_url), 
@@ -128,7 +126,7 @@ module collection::trophy_tests {
     fun nft_shipment_status_attributes_test() {
         let name = b"Artfi";
         let nft_url = b" ";
-        let nft_info = trophy::new_nft_info(string::utf8(name));
+        let mut nft_info = trophy::new_nft_info(string::utf8(name));
         let test_net_nft = trophy::new_trophy_nft(
             string::utf8(name),
             url::new_unsafe_from_bytes(nft_url), 
@@ -148,7 +146,7 @@ module collection::trophy_tests {
         let initial_owner = @0xCAFE;
         let final_owner = @0xFACE;
 
-        let scenario = test_scenario::begin(initial_owner);
+        let mut scenario = test_scenario::begin(initial_owner);
         {   
             test_scenario::sender(&scenario);
 
@@ -172,7 +170,7 @@ module collection::trophy_tests {
         let initial_owner = @0xCAFE;
         let final_owner = @0xFACE;
 
-        let scenario = test_scenario::begin(initial_owner);
+        let mut scenario = test_scenario::begin(initial_owner);
         {   
             test_scenario::sender(&scenario);
 
@@ -197,7 +195,7 @@ module collection::trophy_tests {
         let initial_owner = @0xCAFE;
         let final_owner = @0xFACE;
 
-        let scenario = test_scenario::begin(initial_owner);
+        let mut scenario = test_scenario::begin(initial_owner);
         {   
             test_scenario::sender(&scenario);
 
@@ -221,7 +219,7 @@ module collection::trophy_tests {
         let initial_owner = @0xCAFE;
         let final_owner = @0xFACE;
 
-        let scenario = test_scenario::begin(initial_owner);
+        let mut scenario = test_scenario::begin(initial_owner);
         {   
             test_scenario::sender(&scenario);
 
@@ -231,9 +229,9 @@ module collection::trophy_tests {
 
         test_scenario::next_tx(&mut scenario, final_owner);
         {
-            let nft_info = test_scenario::take_shared<trophy::NFTInfo>(&scenario);
+            let mut nft_info = test_scenario::take_shared<trophy::NFTInfo>(&scenario);
             let royalty = nft::new_royalty(3, 3, 4);
-            let nft_info_artfi = nft::new_nft_info(string::utf8(b"name"), royalty);
+            let mut nft_info_artfi = nft::new_nft_info(string::utf8(b"name"), royalty);
             let test_net_nft = nft::new_artfi_nft(
                 string::utf8(b"name"),
                 url::new_unsafe_from_bytes(b"url"), 
@@ -281,7 +279,7 @@ module collection::trophy_tests {
         let initial_owner = @0xCAFE;
         let final_owner = @0xFACE;
 
-        let scenario = test_scenario::begin(initial_owner);
+        let mut scenario = test_scenario::begin(initial_owner);
         {   
             test_scenario::sender(&scenario);
 
@@ -292,9 +290,9 @@ module collection::trophy_tests {
         test_scenario::next_tx(&mut scenario, initial_owner);
         {
 
-            let nft_info = test_scenario::take_shared<trophy::NFTInfo>(&scenario);
+            let mut nft_info = test_scenario::take_shared<trophy::NFTInfo>(&scenario);
             let royalty = nft::new_royalty(3, 3, 4);
-            let nft_info_artfi = nft::new_nft_info(string::utf8(b"name"), royalty);
+            let mut nft_info_artfi = nft::new_nft_info(string::utf8(b"name"), royalty);
             let test_net_nft = nft::new_artfi_nft(
                 string::utf8(b"name"),
                 url::new_unsafe_from_bytes(b"url"), 
@@ -354,7 +352,7 @@ module collection::trophy_tests {
         let initial_owner = @0xCAFE;
         let final_owner = @0xFACE;
 
-        let scenario = test_scenario::begin(initial_owner);
+        let mut scenario = test_scenario::begin(initial_owner);
         {   
             test_scenario::sender(&scenario);
 
@@ -365,9 +363,9 @@ module collection::trophy_tests {
         test_scenario::next_tx(&mut scenario, initial_owner);
         {
 
-            let nft_info = test_scenario::take_shared<trophy::NFTInfo>(&scenario);
+            let mut nft_info = test_scenario::take_shared<trophy::NFTInfo>(&scenario);
             let royalty = nft::new_royalty(3, 3, 4);
-            let nft_info_artfi = nft::new_nft_info(string::utf8(b"name"), royalty);
+            let mut nft_info_artfi = nft::new_nft_info(string::utf8(b"name"), royalty);
             let test_net_nft = nft::new_artfi_nft(
                 string::utf8(b"name"),
                 url::new_unsafe_from_bytes(b"url"), 
@@ -392,7 +390,7 @@ module collection::trophy_tests {
         {
 
             let nft_object = test_scenario::take_from_sender<trophy::TrophyNFT>(&scenario);
-            let nft_info = test_scenario::take_shared<trophy::NFTInfo>(&scenario);
+            let mut nft_info = test_scenario::take_shared<trophy::NFTInfo>(&scenario);
 
             trophy::burn(
                 nft_object,
@@ -417,7 +415,7 @@ module collection::trophy_tests {
         let initial_owner = @0xCAFE;
         let final_owner = @0xFACE;
 
-        let scenario = test_scenario::begin(initial_owner);
+        let mut scenario = test_scenario::begin(initial_owner);
         {   
             test_scenario::sender(&scenario);
 
@@ -428,9 +426,9 @@ module collection::trophy_tests {
         test_scenario::next_tx(&mut scenario, final_owner);
         {
 
-            let nft_info = test_scenario::take_shared<trophy::NFTInfo>(&scenario);
+            let mut nft_info = test_scenario::take_shared<trophy::NFTInfo>(&scenario);
             let royalty = nft::new_royalty(3, 3, 4);
-            let nft_info_artfi = nft::new_nft_info(string::utf8(b"name"), royalty);
+            let mut nft_info_artfi = nft::new_nft_info(string::utf8(b"name"), royalty);
             let test_net_nft = nft::new_artfi_nft(
                 string::utf8(b"name"),
                 url::new_unsafe_from_bytes(b"url"), 
@@ -462,7 +460,7 @@ module collection::trophy_tests {
         test_scenario::next_tx(&mut scenario, initial_owner);
         {
             let admin_cap = test_scenario::take_from_sender<trophy::AdminCap>(&scenario);
-            let nft_info = test_scenario::take_shared<trophy::NFTInfo>(&scenario);
+            let mut nft_info = test_scenario::take_shared<trophy::NFTInfo>(&scenario);
 
             trophy::update_attribute(&admin_cap, &mut nft_info, nft_id, string::utf8(b"checking"));
 
@@ -494,7 +492,7 @@ module collection::trophy_tests {
         let initial_owner = @0xCAFE;
         let final_owner = @0xFACE;
 
-        let scenario = test_scenario::begin(initial_owner);
+        let mut scenario = test_scenario::begin(initial_owner);
         {   
             test_scenario::sender(&scenario);
 
@@ -520,7 +518,7 @@ module collection::trophy_tests {
         let initial_owner = @0xCAFE;
         let final_owner = @0xFACE;
 
-        let scenario = test_scenario::begin(initial_owner);
+        let mut scenario = test_scenario::begin(initial_owner);
         {   
             test_scenario::sender(&scenario);
 
@@ -530,9 +528,9 @@ module collection::trophy_tests {
 
         test_scenario::next_tx(&mut scenario, final_owner);
         {
-            let nft_info = test_scenario::take_shared<trophy::NFTInfo>(&scenario);
+            let mut nft_info = test_scenario::take_shared<trophy::NFTInfo>(&scenario);
             let royalty = nft::new_royalty(3, 3, 4);
-            let nft_info_artfi = nft::new_nft_info(string::utf8(b"name"), royalty);
+            let mut nft_info_artfi = nft::new_nft_info(string::utf8(b"name"), royalty);
             let test_net_nft = nft::new_artfi_nft(
                 string::utf8(b"name"),
                 url::new_unsafe_from_bytes(b"url"), 
@@ -570,7 +568,7 @@ module collection::trophy_tests {
         let initial_owner = @0xCAFE;
         let final_owner = @0xFACE;
 
-        let scenario = test_scenario::begin(initial_owner);
+        let mut scenario = test_scenario::begin(initial_owner);
         {   
             test_scenario::sender(&scenario);
 
@@ -582,9 +580,9 @@ module collection::trophy_tests {
         test_scenario::next_tx(&mut scenario, initial_owner);
         {
 
-            let nft_info = test_scenario::take_shared<trophy::NFTInfo>(&scenario);
+            let mut nft_info = test_scenario::take_shared<trophy::NFTInfo>(&scenario);
             let royalty = nft::new_royalty(3, 3, 4);
-            let nft_info_artfi = nft::new_nft_info(string::utf8(b"name"), royalty);
+            let mut nft_info_artfi = nft::new_nft_info(string::utf8(b"name"), royalty);
             let test_net_nft = nft::new_artfi_nft(
                 string::utf8(b"name"),
                 url::new_unsafe_from_bytes(b"url"), 
@@ -609,7 +607,7 @@ module collection::trophy_tests {
 
         test_scenario::next_tx(&mut scenario, final_owner);
         {
-            let nft_info = test_scenario::take_shared<trophy::NFTInfo>(&scenario);
+            let mut nft_info = test_scenario::take_shared<trophy::NFTInfo>(&scenario);
             let admin_cap = test_scenario::take_from_sender<trophy::AdminCap>(&scenario);
 
             trophy::update_attribute(&admin_cap, &mut nft_info, object::id(&nft_object), string::utf8(b""));
@@ -629,7 +627,7 @@ module collection::trophy_tests {
         let initial_owner = @0xCAFE;
         let final_owner = @0xFACE;
 
-        let scenario = test_scenario::begin(initial_owner);
+        let mut scenario = test_scenario::begin(initial_owner);
         {   
             test_scenario::sender(&scenario);
 
@@ -639,9 +637,9 @@ module collection::trophy_tests {
 
         test_scenario::next_tx(&mut scenario, final_owner);
         {
-            let nft_info = test_scenario::take_shared<trophy::NFTInfo>(&scenario);
+            let mut nft_info = test_scenario::take_shared<trophy::NFTInfo>(&scenario);
             let royalty = nft::new_royalty(3, 3, 4);
-            let nft_info_artfi = nft::new_nft_info(string::utf8(b"name"), royalty);
+            let mut nft_info_artfi = nft::new_nft_info(string::utf8(b"name"), royalty);
             let test_net_nft = nft::new_artfi_nft(
                 string::utf8(b"name"),
                 url::new_unsafe_from_bytes(b"url"), 
@@ -663,9 +661,9 @@ module collection::trophy_tests {
 
         test_scenario::next_tx(&mut scenario, final_owner);
         {
-            let nft_info = test_scenario::take_shared<trophy::NFTInfo>(&scenario);
+            let mut nft_info = test_scenario::take_shared<trophy::NFTInfo>(&scenario);
             let royalty = nft::new_royalty(3, 3, 4);
-            let nft_info_artfi = nft::new_nft_info(string::utf8(b"name"), royalty);
+            let mut nft_info_artfi = nft::new_nft_info(string::utf8(b"name"), royalty);
             let test_net_nft = nft::new_artfi_nft(
                 string::utf8(b"name"),
                 url::new_unsafe_from_bytes(b"url"), 

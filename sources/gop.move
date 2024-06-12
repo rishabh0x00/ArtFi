@@ -4,16 +4,12 @@ module collection::gop {
     // === Imports ===
 
     use std::string::{Self, String};
-    use std::vector;
 
     use sui::balance::{Self, Balance};
     use sui::coin;
     use sui::display;
     use sui::event;
-    use sui::object::{Self, ID, UID};
     use sui::package;
-    use sui::transfer;
-    use sui::tx_context::{Self, TxContext};
     use sui::vec_map;
     use sui::url::{Self, Url};
 
@@ -27,7 +23,7 @@ module collection::gop {
 
     // === Structs ===
 
-    struct GOPNFT has key, store {
+    public struct GOPNFT has key, store {
         id: UID,
         /// Name for the token
         name: String,
@@ -35,52 +31,52 @@ module collection::gop {
         url: Url
     }
 
-    struct NFTInfo has key, store {
+    public struct NFTInfo has key, store {
         id: UID,
         name: String,
         user_detials: vec_map::VecMap<ID, Attributes>,
         count: vec_map::VecMap<address,u64>,
     }
 
-    struct Attributes has store, copy, drop {
+    public struct Attributes has store, copy, drop {
         claimed: bool,
         airdrop: bool,
         ieo: bool
     }
 
-    struct BuyInfo<phantom CointType> has key {
+    public struct BuyInfo<phantom CointType> has key {
         id: UID,
         price: u64,
         owner: address,
         balance: Balance<CointType>
     }
 
-    struct AdminCap has key {
+    public struct AdminCap has key {
         id: UID
     }
 
     // ===== Events =====
 
-    struct BuyInfoCreated has copy, drop {
+    public struct BuyInfoCreated has copy, drop {
         id: ID,
         owner: address,
         price: u64,
     }
 
-    struct BuyGop has copy, drop {
+    public struct BuyGop has copy, drop {
         user: address,
         fees_paid:  u64,
         number_of_token_mint: u64
     }
 
-    struct WithdrawFees has copy, drop {
+    public struct WithdrawFees has copy, drop {
         buy_info_id: ID,
         owner: address,
         value: u64,
     }
 
     /// One-Time-Witness for the module.
-    struct GOP has drop {}
+    public struct GOP has drop {}
 
     // ===== Entrypoints =====
 
@@ -102,7 +98,7 @@ module collection::gop {
         let publisher = package::claim(otw, ctx);
 
         // Get a new `Display` object for the `GOPNFT` type.
-        let display_object = display::new_with_fields<GOPNFT>(
+        let mut display_object = display::new_with_fields<GOPNFT>(
             &publisher, keys, values, ctx
         );
 
@@ -199,7 +195,7 @@ module collection::gop {
 
         let no_of_nft_mint = coin_value / buy_info.price;
         check_mint_limit(nft_info, tx_context::sender(ctx), no_of_nft_mint);
-        let index = 0;
+        let mut index = 0;
         while (index < no_of_nft_mint) {
             mint_nft(
                 nft_info,
@@ -282,8 +278,8 @@ module collection::gop {
     ) {
         let lengthOfVector = vector::length(uris);
         check_mint_limit(nft_info, user, lengthOfVector);
-        let ids: vector<ID> = vector[];
-        let index = 0;
+        let mut ids: vector<ID> = vector[];
+        let mut index = 0;
 
         while (index < lengthOfVector) {
             let id: ID = mint_func(

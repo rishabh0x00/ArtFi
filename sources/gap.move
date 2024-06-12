@@ -4,13 +4,9 @@ module collection::gap {
     // === Imports ===
 
     use std::string::{Self, String};
-    use std::vector;
 
     use sui::display;
-    use sui::object::{Self, ID, UID};
     use sui::package;
-    use sui::transfer;
-    use sui::tx_context::{Self, TxContext};
     use sui::vec_map;
     use sui::url::{Self, Url};
 
@@ -22,7 +18,7 @@ module collection::gap {
 
     // === Structs ===
 
-    struct GAPNFT has key, store {
+    public struct GAPNFT has key, store {
         id: UID,
         /// Name for the token
         name: String,
@@ -30,23 +26,23 @@ module collection::gap {
         url: Url
     }
 
-    struct NFTInfo has key, store {
+    public struct NFTInfo has key, store {
         id: UID,
         name: String,
         user_detials: vec_map::VecMap<ID, Attributes>,
         user_token_id: vec_map::VecMap<address,ID>,
     }
 
-    struct Attributes has store, copy, drop {
+    public struct Attributes has store, copy, drop {
         ieo: bool
     }
 
-    struct AdminCap has key {
+    public struct AdminCap has key {
         id: UID
     }
 
     /// One-Time-Witness for the module.
-    struct GAP has drop {}
+    public struct GAP has drop {}
 
     // ===== Entrypoints =====
 
@@ -68,7 +64,7 @@ module collection::gap {
         let publisher = package::claim(otw, ctx);
 
         // Get a new `Display` object for the `GAPNFT` type.
-        let display_object = display::new_with_fields<GAPNFT>(
+        let mut display_object = display::new_with_fields<GAPNFT>(
             &publisher, keys, values, ctx
         );
 
@@ -163,8 +159,8 @@ module collection::gap {
     ) {
         let lengthOfVector = vector::length(uris);
         assert!(lengthOfVector == vector::length(user), ELengthNotEqual);
-        let ids: vector<ID> = vector[];
-        let index = 0;
+        let mut ids: vector<ID> = vector[];
+        let mut index = 0;
 
         while (index < lengthOfVector) {
             let user_address = *vector::borrow(user, index);
