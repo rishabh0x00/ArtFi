@@ -39,6 +39,18 @@ module collection::base_nft {
         no_of_tokens: u64
     }
 
+    struct NFTBurned<phantom T> has copy, drop {
+        // The Object ID of the NFT
+        token_id: ID,
+    }
+
+    struct TransferredObject<phantom T> has copy, drop {
+        // The Object ID of the NFT
+        token_id: ID,
+        // address of receiver
+        recipient: address
+    }
+
     struct NFTMetadataUpdated has copy, drop {
         /// Name for the token
         name: String,
@@ -93,25 +105,44 @@ module collection::base_nft {
         })
     }
 
+    public fun emit_burn_nft<T>(id: ID) {
+        event::emit(NFTBurned<T> {
+            token_id: id
+        });
+    }
+
+    public fun emit_transfer_object<T>(id: ID, recipient: address) {
+        emit_transfer<T>(id, recipient);
+    }
+
     /// Transfer `publisher` to `recipient`
     public entry fun transfer_publisher_object(
         publisher_object: package::Publisher, recipient: address, _: &mut TxContext
     ) {
+        let _id = object::id(&publisher_object);
         transfer::public_transfer(publisher_object, recipient);
+
+        emit_transfer<package::Publisher>(_id, recipient);
     }
 
     /// Transfer `display` to `recipient`
     public entry fun transfer_display_object<T: key + store>(
         display_object: display::Display<T>, recipient: address, _: &mut TxContext
     ) {
+        let _id = object::id(&display_object);
         transfer::public_transfer(display_object, recipient);
+
+        emit_transfer<display::Display<T>>(_id, recipient);
     }
 
         /// Transfer `upgrade cap` to `recipient`
     public entry fun transfer_upgrade_object(
         upgrade_cap: package::UpgradeCap, recipient: address, _: &mut TxContext
     ) {
+        let _id = object::id(&upgrade_cap);
         transfer::public_transfer(upgrade_cap, recipient);
+
+        emit_transfer<package::UpgradeCap>(_id, recipient);
     }
 
     public fun update_attribute<T: copy + drop, U: copy + drop>(vector_map: &mut vec_map::VecMap<T, U>, id: T, value: U) {
@@ -128,6 +159,18 @@ module collection::base_nft {
 
     /// transfer AdminCap to new_owner
     public entry fun transfer_admin_cap(admin_cap: AdminCap, new_owner: address, _: &mut TxContext) {
+        let _id = object::id(&admin_cap);
         transfer::transfer(admin_cap, new_owner);
+
+        emit_transfer<AdminCap>(_id, new_owner);
+    }
+
+    // === Private Functions ===
+
+    fun emit_transfer<T>(id: ID, recipient: address) {
+        event::emit(TransferredObject<T> {
+            token_id: id,
+            recipient: recipient
+        });
     }
 }
