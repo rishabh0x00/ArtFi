@@ -124,7 +124,9 @@ module collection::gap {
 
     // === Public-Mutative Functions ===
 
-    /// Permanently delete `NFT`
+    /// Permanently delete `nft`
+    /// only nft owner can call this function
+    /// Emits a NFTBurned for object type GAPNFT
     public entry fun burn(nft: GAPNFT, nft_info: &mut NFTInfo, ctx: &mut TxContext) {
         let _id = object::id(&nft);
         let (_burn_id, _burn_attributes) = vec_map::remove(&mut nft_info.user_detials, &_id);
@@ -137,6 +139,8 @@ module collection::gap {
     }
 
     /// Transfer `nft` to `recipient`
+    /// only nft owner can call this function
+    /// Emits a TransferredObject for object type GAPNFT
     public entry fun transfer_nft(
         nft: GAPNFT, nft_info: &mut NFTInfo, recipient: address, ctx: &mut TxContext
     ) {
@@ -151,7 +155,9 @@ module collection::gap {
 
     // === AdminCap Functions ===
     
-    /// Create a multiple GAP
+    /// Create a multiple GAP and tranfer to user
+    /// can only be called by the owner, which has AdminCap cap object
+    /// Emits a NFTBatchMinted event
     public fun mint_nft_batch(
         _: &AdminCap,
         nft_info: &mut NFTInfo,
@@ -184,6 +190,8 @@ module collection::gap {
     }
 
     /// Update the metadata of the NFT's
+    /// can only be called by the owner, which has admin cap object
+    /// Emits an NFTMetadataUpdated event
     public fun update_metadata(
         _: &AdminCap,
         display_object: &mut display::Display<GAPNFT>,
@@ -201,6 +209,9 @@ module collection::gap {
         base_nft::emit_metadat_update(new_name, new_description);
     }
 
+    /// Update the nft attributes
+    /// can only be called by the owner, which has AdminCap object
+    /// Emits an AttributesUpdated event
     public entry fun update_attribute(
         _: &AdminCap,
         nft_info: &mut NFTInfo,
@@ -213,6 +224,8 @@ module collection::gap {
     }
 
     /// transfer AdminCap to new_owner
+    /// can only be called by user, who ownes admin cap
+    /// Emits a TransferredObject event for object type AdminCap
     public entry fun transfer_admin_cap(admin_cap: AdminCap, new_owner: address, _: &mut TxContext) {
         let _id = object::id(&admin_cap);
         transfer::transfer(admin_cap, new_owner);
