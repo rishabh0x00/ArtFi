@@ -6,10 +6,7 @@ module collection::trophy {
     use std::string::{Self, String};
 
     use sui::display;
-    use sui::object::{Self, ID, UID};
     use sui::package;
-    use sui::transfer;
-    use sui::tx_context::{Self, TxContext};
     use sui::vec_map;
     use sui::url::{Self, Url};
 
@@ -22,7 +19,7 @@ module collection::trophy {
 
     // === Structs ===
 
-    struct TrophyNFT has key, store {
+    public struct TrophyNFT has key, store {
         id: UID,
         /// Name for the token
         name: String,
@@ -30,24 +27,24 @@ module collection::trophy {
         url: Url
     }
 
-    struct NFTInfo has key, store {
+    public struct NFTInfo has key, store {
         id: UID,
         name: String,
         id_detials: vec_map::VecMap<ID, Attributes>,
         fraction_exist: vec_map::VecMap<u64,ID>,
     }
 
-    struct Attributes has store, copy, drop {
+    public struct Attributes has store, copy, drop {
         fraction_id: u64,
         shipment_status: String
     }
 
-    struct AdminCap has key {
+    public struct AdminCap has key {
         id: UID
     }
 
     /// One-Time-Witness for the module.
-    struct TROPHY has drop {}
+    public struct TROPHY has drop {}
 
     // ===== Entrypoints =====
 
@@ -69,7 +66,7 @@ module collection::trophy {
         let publisher = package::claim(otw, ctx);
 
         // Get a new `Display` object for the `TrophyNFT` type.
-        let display_object = display::new_with_fields<TrophyNFT>(
+        let mut display_object = display::new_with_fields<TrophyNFT>(
             &publisher, keys, values, ctx
         );
 

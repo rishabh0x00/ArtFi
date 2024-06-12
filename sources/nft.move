@@ -5,13 +5,9 @@ module collection::nft {
 
     use sui::display;
     use sui::event;
-    use sui::object::{Self, ID, UID};
     use sui::package;
     use std::string::{Self, String};
-    use sui::transfer;
-    use sui::tx_context::{Self, TxContext};
     use sui::url::{Self, Url};
-    use std::vector;
     use sui::vec_map;
 
     use collection::base_nft;
@@ -22,7 +18,7 @@ module collection::nft {
 
     // === Structs ===
 
-    struct ArtfiNFT has key, store {
+    public struct ArtfiNFT has key, store {
         id: UID,
         fraction_id: u64,
         /// Name for the token
@@ -31,37 +27,37 @@ module collection::nft {
         url: Url
     }
 
-    struct Royalty has store, copy, drop {
+    public struct Royalty has store, copy, drop {
         artfi: u64,
         artist: u64,
         staking_contract: u64
     }
 
-    struct NFTInfo has key, store {
+    public struct NFTInfo has key, store {
         id: UID,
         name: String,
         royalty_nft: vec_map::VecMap<ID, Royalty>,
         default_royalty: Royalty
     }
 
-    struct AdminCap has key {
+    public struct AdminCap has key {
         id: UID
     }
 
-    struct MinterCap has key {
+    public struct MinterCap has key {
         id: UID
     }
 
     // ===== Events =====
 
-    struct RoyaltyUpdated has copy, drop {
+    public struct RoyaltyUpdated has copy, drop {
         artfi: u64,
         artist: u64,
         staking_contract: u64,
     }
 
     /// One-Time-Witness for the module.
-    struct NFT has drop {}
+    public struct NFT has drop {}
 
     // ===== Public view functions =====
 
@@ -125,7 +121,7 @@ module collection::nft {
         let publisher = package::claim(otw, ctx);
 
         // Get a new `Display` object for the `ArtfiNFT` type.
-        let display_object = display::new_with_fields<ArtfiNFT>(
+        let mut display_object = display::new_with_fields<ArtfiNFT>(
             &publisher, keys, values, ctx
         );
 
@@ -281,8 +277,8 @@ module collection::nft {
         assert!(lengthOfVector == vector::length(fraction_ids), ELengthNotEqual);
         assert!(lengthOfVector == vector::length(user), ELengthNotEqual);
 
-        let ids: vector<ID> = vector[];
-        let index = 0;
+        let mut ids: vector<ID> = vector[];
+        let mut index = 0;
 
         while (index < lengthOfVector) {
             let id = mint_func(
