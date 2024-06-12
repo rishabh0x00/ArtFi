@@ -9,6 +9,7 @@ module collection::gop {
     use sui::balance::{Self, Balance};
     use sui::coin;
     use sui::display;
+    use sui::event;
     use sui::object::{Self, ID, UID};
     use sui::package;
     use sui::transfer;
@@ -56,6 +57,20 @@ module collection::gop {
 
     struct AdminCap has key {
         id: UID
+    }
+
+    // ===== Events =====
+
+    struct BuyInfoCreated has copy, drop {
+        id: ID,
+        owner: address,
+        price: u64,
+    }
+
+    struct WithdrawFees has copy, drop {
+        buy_info_id: ID,
+        owner: address,
+        value: u64,
     }
 
     /// One-Time-Witness for the module.
@@ -199,12 +214,15 @@ module collection::gop {
 
         let GOPNFT { id, name: _, url: _ } = nft;
         object::delete(id);
+
+        base_nft::emit_burn_nft<GOPNFT>(_id);
     }
 
     /// Transfer `nft` to `recipient`
     public entry fun transfer_nft(
         nft: GOPNFT, recipient: address, nft_info: &mut NFTInfo, ctx: &mut TxContext
     ) {
+        let _id = object::id(&nft);
         let counter = vec_map::get_mut(&mut nft_info.count, &tx_context::sender(ctx));
         *counter = *counter - 1;
 
@@ -216,17 +234,29 @@ module collection::gop {
         };
 
         transfer::public_transfer(nft, recipient);
+
+        base_nft::emit_transfer_object<GOPNFT>(_id, recipient);
     }
 
     // === AdminCap Functions ===
 
     public fun init_buy_info<CointType>(_: &AdminCap, price: u64, ctx: &mut TxContext) {
-        transfer::share_object(BuyInfo<CointType>{
+        let buy_info = BuyInfo<CointType>{
             id: object::new(ctx),
             price: price,
             owner: tx_context::sender(ctx),
             balance: balance::zero<CointType>()
-        });
+        };
+
+        let _id = object::id(&buy_info);
+
+        transfer::share_object(buy_info);
+
+        event::emit(BuyInfoCreated{
+            id: _id,
+            owner: tx_context::sender(ctx),
+            price
+        })
     }
     
     /// Create a multiple GOP
@@ -320,11 +350,20 @@ module collection::gop {
         let total_fees = balance::value(&buy_info.balance);
         let collected_coin = coin::take(&mut buy_info.balance, total_fees, ctx);
         transfer::public_transfer(collected_coin, buy_info.owner);
+
+        event::emit(WithdrawFees{
+            buy_info_id: object::id(buy_info),
+            owner: buy_info.owner,
+            value: total_fees
+        })
     }
 
     /// transfer AdminCap to new_owner
     public entry fun transfer_admin_cap(admin_cap: AdminCap, new_owner: address, _: &mut TxContext) {
+        let _id = object::id(&admin_cap);
         transfer::transfer(admin_cap, new_owner);
+
+        base_nft::emit_transfer_object<AdminCap>(_id, new_owner);
     }
 
     // === Private Functions ===
