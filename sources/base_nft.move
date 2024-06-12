@@ -39,6 +39,18 @@ module collection::base_nft {
         no_of_tokens: u64
     }
 
+    struct NFTBurned<phantom T> has copy, drop {
+        // The Object ID of the NFT
+        token_id: ID,
+    }
+
+    struct TransferredObject<phantom T> has copy, drop {
+        // The Object ID of the NFT
+        token_id: ID,
+        // address of receiver
+        recipient: address
+    }
+
     struct NFTMetadataUpdated has copy, drop {
         /// Name for the token
         name: String,
@@ -61,7 +73,8 @@ module collection::base_nft {
     }
 
     // === Public Functions ===
-
+ 
+    /// Emits a NFTMinted
     public fun emit_mint_nft(id: ID, creator: address, name: String) {
         event::emit(NFTMinted {
             token_id: id,
@@ -70,6 +83,7 @@ module collection::base_nft {
         });
     }
 
+    /// Emits a NFTBatchMinted
     public fun emit_batch_mint_nft(ids: vector<ID>, no_of_tokens: u64,creator: address, name: String) {
         event::emit(NFTBatchMinted {
             token_ids: ids,
@@ -79,6 +93,7 @@ module collection::base_nft {
         });
     }
 
+    /// Emits a NFTMetadataUpdated
     public fun emit_metadat_update(new_name: String, new_description: String) {
         event::emit(NFTMetadataUpdated{
             name: new_name,
@@ -86,6 +101,7 @@ module collection::base_nft {
         })
     }
 
+    /// Emits an AttributesUpdated
     public fun emit_update_attributes<T: copy + drop, U: copy + drop>(id: T, value: U) {
         event::emit(AttributesUpdated{
             key: id,
@@ -93,27 +109,53 @@ module collection::base_nft {
         })
     }
 
+    /// Emits a NFTBurned
+    public fun emit_burn_nft<T>(id: ID) {
+        event::emit(NFTBurned<T> {
+            token_id: id
+        });
+    }
+
+    /// Emits a TransferredObject for object type T
+    public fun emit_transfer_object<T>(id: ID, recipient: address) {
+        emit_transfer<T>(id, recipient);
+    }
+
     /// Transfer `publisher` to `recipient`
+    /// Emits a TransferredObject for Publisher object
     public entry fun transfer_publisher_object(
         publisher_object: package::Publisher, recipient: address, _: &mut TxContext
     ) {
+        let _id = object::id(&publisher_object);
         transfer::public_transfer(publisher_object, recipient);
+
+        emit_transfer<package::Publisher>(_id, recipient);
     }
 
     /// Transfer `display` to `recipient`
+    /// Emits a TransferredObject for object type display::Display<T>
     public entry fun transfer_display_object<T: key + store>(
         display_object: display::Display<T>, recipient: address, _: &mut TxContext
     ) {
+        let _id = object::id(&display_object);
         transfer::public_transfer(display_object, recipient);
+
+        emit_transfer<display::Display<T>>(_id, recipient);
     }
 
-        /// Transfer `upgrade cap` to `recipient`
+    /// Transfer `upgrade cap` to `recipient`
+    /// Emits a TransferredObject for object type UpgradeCap
     public entry fun transfer_upgrade_object(
         upgrade_cap: package::UpgradeCap, recipient: address, _: &mut TxContext
     ) {
+        let _id = object::id(&upgrade_cap);
         transfer::public_transfer(upgrade_cap, recipient);
+
+        emit_transfer<package::UpgradeCap>(_id, recipient);
     }
 
+    /// Remove and insert new value to Id key
+    /// Emits an AttributesUpdated
     public fun update_attribute<T: copy + drop, U: copy + drop>(vector_map: &mut vec_map::VecMap<T, U>, id: T, value: U) {
         vec_map::remove(vector_map, &id);
         vec_map::insert(vector_map, id, value);
@@ -127,7 +169,20 @@ module collection::base_nft {
     // === AdminCap Functions ===
 
     /// transfer AdminCap to new_owner
+    /// Emits a TransferredObject for object type AdminCap
     public entry fun transfer_admin_cap(admin_cap: AdminCap, new_owner: address, _: &mut TxContext) {
+        let _id = object::id(&admin_cap);
         transfer::transfer(admin_cap, new_owner);
+
+        emit_transfer<AdminCap>(_id, new_owner);
+    }
+
+    // === Private Functions ===
+
+    fun emit_transfer<T>(id: ID, recipient: address) {
+        event::emit(TransferredObject<T> {
+            token_id: id,
+            recipient: recipient
+        });
     }
 }

@@ -9,6 +9,7 @@ module collection::gop {
     use sui::balance::{Self, Balance};
     use sui::coin;
     use sui::display;
+    use sui::event;
     use sui::object::{Self, ID, UID};
     use sui::package;
     use sui::transfer;
@@ -56,6 +57,26 @@ module collection::gop {
 
     struct AdminCap has key {
         id: UID
+    }
+
+    // ===== Events =====
+
+    struct BuyInfoCreated has copy, drop {
+        id: ID,
+        owner: address,
+        price: u64,
+    }
+
+    struct BuyGop has copy, drop {
+        user: address,
+        fees_paid:  u64,
+        number_of_token_mint: u64
+    }
+
+    struct WithdrawFees has copy, drop {
+        buy_info_id: ID,
+        owner: address,
+        value: u64,
     }
 
     /// One-Time-Witness for the module.
@@ -162,6 +183,9 @@ module collection::gop {
 
     // === Public-Mutative Functions ===
 
+    /// mint new gop token with respect to number coins provided
+    /// revert on incorrect value of coin
+    /// Emits TransferredObject for object type GOPNFT and BuyGop
     entry fun buy_gop<CoinType>(
         buy_info: &mut BuyInfo<CoinType>, 
         coin: coin::Coin<CoinType>,
@@ -188,9 +212,16 @@ module collection::gop {
 
         coin::put(&mut buy_info.balance, coin);
 
+        event::emit(BuyGop{
+            user:  tx_context::sender(ctx),
+            fees_paid: coin_value,
+            number_of_token_mint: no_of_nft_mint
+        });
     }
 
     /// Permanently delete `NFT`
+    /// only nft owner can call this function
+    /// Emits a NFTBurned for object type GOPNFT
     public entry fun burn(nft: GOPNFT, nft_info: &mut NFTInfo, ctx: &mut TxContext) {
         let _id = object::id(&nft);
         let (_burn_id, _burn_attributes) = vec_map::remove(&mut nft_info.user_detials, &_id);
@@ -199,12 +230,17 @@ module collection::gop {
 
         let GOPNFT { id, name: _, url: _ } = nft;
         object::delete(id);
+
+        base_nft::emit_burn_nft<GOPNFT>(_id);
     }
 
     /// Transfer `nft` to `recipient`
+    /// only nft owner can call this function
+    /// Emits a TransferredObject for object type GOPNFT
     public entry fun transfer_nft(
         nft: GOPNFT, recipient: address, nft_info: &mut NFTInfo, ctx: &mut TxContext
     ) {
+        let _id = object::id(&nft);
         let counter = vec_map::get_mut(&mut nft_info.count, &tx_context::sender(ctx));
         *counter = *counter - 1;
 
@@ -216,20 +252,37 @@ module collection::gop {
         };
 
         transfer::public_transfer(nft, recipient);
+
+        base_nft::emit_transfer_object<GOPNFT>(_id, recipient);
     }
 
     // === AdminCap Functions ===
 
+    /// Create new BuyInfo object for CoinType and set price
+    /// can only be called by the admin, which has admin cap object
+    /// Emits a BuyInfoCreated event
     public fun init_buy_info<CointType>(_: &AdminCap, price: u64, ctx: &mut TxContext) {
-        transfer::share_object(BuyInfo<CointType>{
+        let buy_info = BuyInfo<CointType>{
             id: object::new(ctx),
             price: price,
             owner: tx_context::sender(ctx),
             balance: balance::zero<CointType>()
-        });
+        };
+
+        let _id = object::id(&buy_info);
+
+        transfer::share_object(buy_info);
+
+        event::emit(BuyInfoCreated{
+            id: _id,
+            owner: tx_context::sender(ctx),
+            price
+        })
     }
     
-    /// Create a multiple GOP
+    /// Create a multiple GOP and tranfer to user
+    /// can only be called by the owner, which has admin cap object
+    /// Emits a NFTBatchMinted event
     public fun mint_nft_batch(
         _: &AdminCap,
         nft_info: &mut NFTInfo,
@@ -257,7 +310,9 @@ module collection::gop {
         base_nft::emit_batch_mint_nft(ids, lengthOfVector, tx_context::sender(ctx), nft_info.name);
     }
 
-    /// Update the metadata  of the NFT's
+    /// Update the metadata of the NFT's
+    /// can only be called by the owner, which has admin cap object
+    /// Emits an NFTMetadataUpdated event
     public fun update_metadata(
         _: &AdminCap,
         display_object: &mut display::Display<GOPNFT>,
@@ -275,6 +330,9 @@ module collection::gop {
         base_nft::emit_metadat_update(new_name, new_description);
     }
 
+    /// Update the nft attributes
+    /// can only be called by the owner, which has admin cap object
+    /// Emits an AttributesUpdated event
     public entry fun update_attribute(
         _: &AdminCap,
         nft_info: &mut NFTInfo,
@@ -290,7 +348,8 @@ module collection::gop {
         });
     }
 
-    /// update buy info owner
+    /// Update the buy info object owner
+    /// can only be called by the owner, which has admin cap object
     public entry fun update_buy_info_owner<CoinType>(
         _: &AdminCap,
         buy_info: &mut BuyInfo<CoinType>,
@@ -300,7 +359,8 @@ module collection::gop {
         buy_info.owner = new_owner;
     }
 
-    /// update buy info price
+    /// Update the buy info object price
+    /// can only be called by the owner, which has admin cap object
     public entry fun update_buy_info_price<CoinType>(
         _: &AdminCap,
         buy_info: &mut BuyInfo<CoinType>,
@@ -310,7 +370,8 @@ module collection::gop {
         buy_info.price = new_price;
     }
 
-    /// update buy info price
+    /// Withdraw accumulated fees from user
+    /// can only be called by the owner of buy info object
     public entry fun take_fees<CoinType>(
         buy_info: &mut BuyInfo<CoinType>,
         ctx: &mut TxContext
@@ -320,11 +381,22 @@ module collection::gop {
         let total_fees = balance::value(&buy_info.balance);
         let collected_coin = coin::take(&mut buy_info.balance, total_fees, ctx);
         transfer::public_transfer(collected_coin, buy_info.owner);
+
+        event::emit(WithdrawFees{
+            buy_info_id: object::id(buy_info),
+            owner: buy_info.owner,
+            value: total_fees
+        })
     }
 
     /// transfer AdminCap to new_owner
+    /// can only be called by user, who ownes admin cap
+    /// Emits a TransferredObject event for object type AdminCap
     public entry fun transfer_admin_cap(admin_cap: AdminCap, new_owner: address, _: &mut TxContext) {
+        let _id = object::id(&admin_cap);
         transfer::transfer(admin_cap, new_owner);
+
+        base_nft::emit_transfer_object<AdminCap>(_id, new_owner);
     }
 
     // === Private Functions ===
