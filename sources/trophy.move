@@ -158,13 +158,18 @@ module collection::trophy {
 
         let TrophyNFT { id, name: _, url: _ } = nft;
         object::delete(id);
+
+        base_nft::emit_burn_nft<TrophyNFT>(_id);
     }
 
     /// Transfer `nft` to `recipient`
     public entry fun transfer_nft(
         nft: TrophyNFT, recipient: address, _: &mut TxContext
     ) {
+        let _id = object::id(&nft);
         transfer::public_transfer(nft, recipient);
+
+        base_nft::emit_transfer_object<TrophyNFT>(_id, recipient);
     }
 
     // === AdminCap Functions ===
@@ -201,7 +206,10 @@ module collection::trophy {
 
     /// transfer AdminCap to new_owner
     public entry fun transfer_admin_cap(admin_cap: AdminCap, new_owner: address, _: &mut TxContext) {
+        let _id = object::id(&admin_cap);
         transfer::transfer(admin_cap, new_owner);
+
+        base_nft::emit_transfer_object<AdminCap>(_id, new_owner);
     }
 
     // === Private Functions ===
