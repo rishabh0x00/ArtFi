@@ -164,13 +164,18 @@ module collection::nft {
         
         let ArtfiNFT { id, fraction_id: _, name: _, url: _ } = nft;
         object::delete(id);
+
+        base_nft::emit_burn_nft<ArtfiNFT>(_id);
     }
 
     /// Transfer `nft` to `recipient`
     public entry fun transfer_nft(
         nft: ArtfiNFT, recipient: address, _: &mut TxContext
     ) {
+        let _id = object::id(&nft);
         transfer::public_transfer(nft, recipient);
+
+        base_nft::emit_transfer_object<ArtfiNFT>(_id, recipient);
     }
 
     // === AdminCap Functions ===
@@ -284,14 +289,21 @@ module collection::nft {
 
     /// transfer AdminCap to new_owner
     public entry fun transfer_admin_cap(admin_cap: AdminCap, new_owner: address, _: &mut TxContext) {
+        let _id = object::id(&admin_cap);
         transfer::transfer(admin_cap, new_owner);
+
+        base_nft::emit_transfer_object<AdminCap>(_id, new_owner);
     }
 
     /// transfer new instance of MinterCap to minter_owner
     public entry fun transfer_minter_cap(_: &AdminCap, minter_owner: address, ctx: &mut TxContext) {
-        transfer::transfer(MinterCap {
+        let minter_cap = MinterCap {
             id: object::new(ctx)
-        }, minter_owner);
+        };
+        let _id = object::id(&minter_cap);
+        transfer::transfer(minter_cap, minter_owner);
+
+        base_nft::emit_transfer_object<MinterCap>(_id, minter_owner);
     }
 
     // === Private Functions ===
