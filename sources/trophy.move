@@ -130,7 +130,8 @@ module collection::trophy {
 
     // === Public-Mutative Functions ===
 
-    /// Create a new Trophy
+    /// Create a TrophyNFT and tranfer to user
+    /// can only be called if user has ArtfiNFT nft and fraction id does not already exist
     public entry fun mint_nft(
         nft_info: &mut NFTInfo,
         nft_object: &nft::ArtfiNFT,
@@ -150,7 +151,9 @@ module collection::trophy {
         base_nft::emit_mint_nft(id, tx_context::sender(ctx), nft_info.name);
     }
 
-    /// Permanently delete `NFT`
+    /// Permanently delete `nft`
+    /// only nft owner can call this function
+    /// Emits a NFTBurned for object type TrophyNFT
     public entry fun burn(nft: TrophyNFT, nft_info: &mut NFTInfo, _: &mut TxContext) {
         let _id = object::id(&nft);
         let (_burn_id, _burn_attributes) = vec_map::remove(&mut nft_info.id_detials, &_id);
@@ -163,6 +166,8 @@ module collection::trophy {
     }
 
     /// Transfer `nft` to `recipient`
+    /// only nft owner can call this function
+    /// Emits a TransferredObject for object type TrophyNFT
     public entry fun transfer_nft(
         nft: TrophyNFT, recipient: address, _: &mut TxContext
     ) {
@@ -175,6 +180,8 @@ module collection::trophy {
     // === AdminCap Functions ===
 
     /// Update the metadata of the NFT's
+    /// can only be called by the owner, which has admin cap object
+    /// Emits an NFTMetadataUpdated event
     public fun update_metadata(
         _: &AdminCap,
         display_object: &mut display::Display<TrophyNFT>,
@@ -192,6 +199,9 @@ module collection::trophy {
         base_nft::emit_metadat_update(new_name, new_description);
     }
 
+    /// Update the nft attributes
+    /// can only be called by the owner, which has admin cap object
+    /// Emits an AttributesUpdated event
     public entry fun update_attribute(
         _: &AdminCap,
         nft_info: &mut NFTInfo,
@@ -205,6 +215,8 @@ module collection::trophy {
     }
 
     /// transfer AdminCap to new_owner
+    /// can only be called by user, who ownes admin cap
+    /// Emits a TransferredObject event for object type AdminCap
     public entry fun transfer_admin_cap(admin_cap: AdminCap, new_owner: address, _: &mut TxContext) {
         let _id = object::id(&admin_cap);
         transfer::transfer(admin_cap, new_owner);
