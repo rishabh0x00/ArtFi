@@ -1,4 +1,3 @@
-#[allow(lint(share_owned, self_transfer))]
 module collection::trophy {
 
     // === Imports ===
@@ -138,14 +137,16 @@ module collection::trophy {
         let fraction_id = nft::fraction_id(nft_object);
         assert!(check_fraction_exist(nft_info,  fraction_id) == false, EAlreadyExist);
 
-        let id: ID = mint_func(
+        let nft = mint_func(
             nft_info,
             url,
             fraction_id,
             ctx
         );
 
-        base_nft::emit_mint_nft(id, tx_context::sender(ctx), nft_info.name);
+        base_nft::emit_mint_nft(object::id(&nft), tx_context::sender(ctx), nft_info.name);
+
+        transfer::public_transfer(nft, tx_context::sender(ctx));
     }
 
     /// Permanently delete `nft`
@@ -235,7 +236,7 @@ module collection::trophy {
         url: vector<u8>,
         fraction_id: u64,
         ctx: &mut TxContext
-     ) : ID {
+    ) : TrophyNFT {
         let nft = TrophyNFT{
             id: object::new(ctx),
             name: nft_info.name,
@@ -251,8 +252,7 @@ module collection::trophy {
 
         vec_map::insert(&mut nft_info.fraction_exist, fraction_id, _id);
 
-        transfer::public_transfer(nft, tx_context::sender(ctx));
-        _id
+        nft
     }
 
     // === Test Functions ===
