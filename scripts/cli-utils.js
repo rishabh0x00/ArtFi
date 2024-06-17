@@ -29,7 +29,7 @@ const addBaseOptions = (program, options = {}) => {
         program.addOption(
             new Option('--signatureScheme <signatureScheme>', 'signature scheme to use')
                 .choices(['secp256k1', 'ed25519', 'secp256r1'])
-                .default('secp256k1')
+                .default('ed25519')
                 .env('SIGNATURE_SCHEME'),
         );
     }
@@ -46,6 +46,10 @@ const addExtendedOptions = (program, options = {}) => {
 
     if (options.contractName) {
         program.addOption(new Option('-c, --contractName <contractName>', 'contract name'));
+    }
+
+    if (options.multisigKey) {
+        program.addOption(new Option('--multisigKey <multisigKey>', 'Multisig key to combine singature').env('MULTISIG_KEY'));
     }
 
     return program;
