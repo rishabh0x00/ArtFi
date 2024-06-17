@@ -77,23 +77,6 @@ If you want to use signer public key instead of multisig key, then create a `inf
 
 ```bash
 {
-    "contracts": {
-        "base_nft": {
-            "admin_cap": ""
-        },
-        "nft": {
-            "admin_cap": ""
-        },
-        "trophy": {
-            "admin_cap": ""
-        },
-        "gop": {
-            "admin_cap": ""
-        },
-        "gap": {
-            "admin_cap": ""
-        }
-    },
     "multisig": {
         "threshold": "",
         "signers": [
