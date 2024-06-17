@@ -66,3 +66,60 @@ If the publish transaction is successful, your terminal or console responds with
 To call a public function of package, use command.
 
 `sui client call --package <PACKAGE-ID> --module <nft> --function <FUNCTION> --args <ARGUMENTS>  --gas-budget <GAS>`
+
+## Scripts
+
+Set `PRIVATE_KEY="suiprivkey..."` in your `.env` file. Other private key types are supported via `--privateKeyType` and `--signatureScheme` flags.
+
+Use the `-e local` (or `ENV=local` in the `.env` config) flag with scripts to run against the local network.
+
+If you want to use signer public key instead of multisig key, then create a `info/<network>.json` config containing:
+
+```bash
+{
+    "contracts": {
+        "base_nft": {
+            "admin_cap": ""
+        },
+        "nft": {
+            "admin_cap": ""
+        },
+        "trophy": {
+            "admin_cap": ""
+        },
+        "gop": {
+            "admin_cap": ""
+        },
+        "gap": {
+            "admin_cap": ""
+        }
+    },
+    "multisig": {
+        "threshold": "",
+        "signers": [
+            {
+                "publicKey": "",   // hex public key of signer
+                "weight": "",
+                "schemeType": ""   // 'secp256k1', 'ed25519', 'secp256r1'
+            },
+            ...
+        ]
+    },
+    "packageId": ""
+}
+```
+
+### Transfer object
+
+Please note shared objects cannot be transferred via this script. can only transferred public objects
+
+```bash
+node scripts/transfer-object.js --objectId <object id to be transferred> --recipient <recipient address>
+
+node scripts/transfer-object.js --contractName <Can be checked from config> --objectName <picked from config> --recipient <recipient address>
+```
+
+use this command to get help
+```bash
+node scripts/transfer-object.js --help
+```
